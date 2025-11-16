@@ -1,0 +1,79 @@
+:root {
+  --background: #1A1A1A;
+  --background-alt: #232323;
+  --accent: #1d5a54;
+}
+
+.theme-light {
+  --background: #F8F9F9;
+  --background-alt: #FFFFFF;
+  --text: #1A1A1A;
+  --text-muted: #666666;
+  --border: #DADADA;
+  --border-focus: #999999;
+  --border-accent: #1A1A1A;
+  --accent: #C9EDEA;
+  --accent-hover: #59b4b6;
+  --surface-hover: #E0F0EF;
+  --surface-selected: #beebe7;
+  --neutral: #EDEDED;
+  --success: #1FB87E;
+  --success-background: rgb(88, 206, 161);
+  --warning: #F7BC00;
+  --warning-background: #eec439;
+  --background-error: #ec3f3f;
+  --error: #C62828;
+  --disabled: #B0B0B0;
+}
+
+.theme-dark {
+  --background: #1A1A1A;
+  --background-alt: #232323;
+  --text: #FFFFFF;
+  --text-muted: #BBBBBB;
+  --border: #919191;
+  --border-focus: #797979;
+  --border-accent: #DADADA;
+  --accent: #1d5a54;
+  --accent-hover: #119194;
+  --surface-hover: #2A3F3F;
+  --surface-selected: #256664;
+  --neutral: #3A3A3A;
+  --success-background: rgb(40, 136, 99);
+  --success: #1da774;
+  --warning: #b18700;
+  --warning-background: #e4c04b;
+  --background-error: #ec3f3f;
+  --error: #EF5350;
+  --disabled: #555555;
+}
+
+ 
+body {
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--background);
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  transition: 
+    background-color 0.5s ease, 
+    color 0.5s ease, 
+    border-color 0.5s ease;
+}

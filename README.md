@@ -1,35 +1,44 @@
 # simulation-tissus-jacquard
-## Project Description
 
+This template should help get you started developing with Vue 3 in Vite.
 
-## Setup
-### Dependencies
-On a Debian system you can install the needed dependencies using:
-```shell
-sudo apt install g++ cmake make
+## Recommended IDE Setup
+
+[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+
+## Recommended Browser Setup
+
+- Chromium-based browsers (Chrome, Edge, Brave, etc.):
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
+  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
+- Firefox:
+  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
+  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Project Setup
+
+```sh
+npm install
 ```
 
-### Clone Repository
-```shell
-git clone https://github.com/llikian/simulation-tissus-jacquard
-cd simulation-tissus-jacquard
+### Compile and Hot-Reload for Development
+
+```sh
+npm run dev
 ```
 
-### Build
-To build you can simply run the `release.sh` script at the root of the project using:
-```shell
-bash release.sh
+### Compile and Minify for Production
+
+```sh
+npm run build
 ```
 
-You can also manually build it using:
-```shell
-cmake -B build && \
-cmake --build build -j
-```
+### Lint with [ESLint](https://eslint.org/)
 
-Then you can run it using:
-```shell
-bin/simulation-tissus-jacquard
+```sh
+npm run lint
 ```
-
-## Credits

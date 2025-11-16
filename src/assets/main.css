@@ -1,0 +1,18 @@
+@import './base.css';
+
+#app {
+    font-weight: normal;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--background);
+    color: var(--text);
+}
+
+p {
+    font-size: 1rem;
+}
