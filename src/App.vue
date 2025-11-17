@@ -4,11 +4,14 @@ import ToolsBar from './components/ToolsBar.vue';
 import InputGrid from './components/InputGrid.vue';
 
 import { ref } from 'vue';
+import { Panel, PanelGroup, PanelResizeHandle } from 'vue-resizable-panels';
 
-const displayGrid = ref(false);
+const displayGrid = ref(true);
+const groupKey = ref(0);
 
 function toggleGrid() {
   displayGrid.value = !displayGrid.value;
+  groupKey.value++;
 }
 </script>
 
@@ -16,8 +19,15 @@ function toggleGrid() {
   <div class="page">
     <ToolsBar :onToggleGrid="toggleGrid" :displayGrid="displayGrid" />
     <div class="content">
-      <ThreeScene />
-      <InputGrid v-if="displayGrid" />
+      <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
+        <Panel :defaultSize="displayGrid ? 70 : 100" :minSize="50">
+          <ThreeScene />
+        </Panel>
+        <PanelResizeHandle class="resize-handle" />
+        <Panel :defaultSize="30" :minSize="displayGrid ? 10 : 0" :maxSize="displayGrid ? 50 : 0">
+          <InputGrid v-show="displayGrid" />
+        </Panel>
+      </PanelGroup>
     </div>
   </div>
 </template>
@@ -31,5 +41,10 @@ function toggleGrid() {
 
 .content {
   display: flex;
+}
+
+.resize-handle {
+  background-color: black;
+  width: 0.5rem;
 }
 </style>

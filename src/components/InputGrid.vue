@@ -67,12 +67,13 @@ watch(gridSize, (newValue) => {
 .grid-panel {
   display: flex;
   flex-direction: column;
-  width: 30%;
+  width: 100%;
 }
 
 .grid {
   display: grid;
   width: 95%;
+  max-height: 50%;
   aspect-ratio: 1;
   grid-template-columns: repeat(var(--grid-size), 1fr);
   padding: 0 0.5rem;

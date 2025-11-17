@@ -46,15 +46,20 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+function handleResize() {
+  const width = container.value.clientWidth;
+  const height = container.value.clientHeight;
+  renderer.setSize(width, height);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  camera.lookAt(scene.position);
+}
+
 onMounted(() => {
   setupScene();
 
   window.addEventListener('resize', () => {
-    const width = container.value.clientWidth;
-    const height = container.value.clientHeight;
-    renderer.setSize(width, height);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    handleResize();
   });
 });
 </script>
