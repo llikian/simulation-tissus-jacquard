@@ -13,7 +13,7 @@ function toggleGrid() {
 </script>
 
 <template>
-  <div class="page theme-dark">
+  <div class="page">
     <ToolsBar :onToggleGrid="toggleGrid" :displayGrid="displayGrid" />
     <div class="content">
       <ThreeScene />
