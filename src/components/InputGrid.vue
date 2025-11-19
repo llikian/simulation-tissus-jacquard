@@ -12,8 +12,36 @@ function fillGrid(fillValue) {
 
 fillGrid(false);
 
-function toggle(i, j) {
+function toggleCell(i, j) {
   grid.value[i][j] = !grid.value[i][j];
+}
+
+function toggleGrid() {
+  grid.value = grid.value.map((row) => row.map((cell) => !cell));
+}
+
+const fillF = ref(1);
+const fillT = ref(1);
+const fillOffsetDelay = ref(1);
+const fillOffset = ref(1);
+function fillPattern(f, t, offsetDelay, offset) {
+  const cycle = f + t;
+
+  let shift = 0;
+
+  for (let i = 0; i < gridSize.value; i++) {
+    if (offsetDelay > 0) {
+      shift = (Math.floor(i / offsetDelay) % 2) * offset;
+    }
+
+    for (let j = 0; j < gridSize.value; j++) {
+      const shiftedIndex = (j - shift + gridSize.value) % gridSize.value;
+
+      const posInCycle = shiftedIndex % cycle;
+
+      grid.value[i][j] = posInCycle >= f;
+    }
+  }
 }
 
 function adjustGrid(newSize) {
@@ -47,7 +75,7 @@ watch(gridSize, (newValue) => {
         :key="index"
         class="cell"
         :class="{ active: cell.value }"
-        @click="toggle(cell.i, cell.j)"
+        @click="toggleCell(cell.i, cell.j)"
       ></div>
     </div>
     <div class="grid-settings">
@@ -58,6 +86,14 @@ watch(gridSize, (newValue) => {
       <div class="grid-buttons">
         <button @click="fillGrid(false)">Clear</button>
         <button @click="fillGrid(true)">Fill</button>
+        <button @click="toggleGrid">Flip</button>
+      </div>
+      <div class="pattern-maker">
+        <label>X False number : <input type="number" min="0" v-model="fillF" /></label>
+        <label>X True number : <input type="number" min="0" v-model="fillT" /></label>
+        <label>Y offset delay : <input type="number" min="0" v-model="fillOffsetDelay" /></label>
+        <label>Y offset : <input type="number" min="0" v-model="fillOffset" /></label>
+        <button @click="fillPattern(fillF, fillT, fillOffsetDelay, fillOffset)">Pattern</button>
       </div>
     </div>
   </div>
@@ -98,5 +134,23 @@ watch(gridSize, (newValue) => {
 
 .grid-buttons {
   display: flex;
+  margin-bottom: 1rem;
+}
+
+.pattern-maker {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  row-gap: 8px;
+  max-width: 16rem;
+  align-items: center;
+}
+
+.pattern-maker label {
+  display: contents;
+}
+
+.pattern-maker input {
+  width: 100%;
 }
 </style>
