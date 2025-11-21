@@ -26,11 +26,35 @@ function setupScene() {
   light.position.set(1, 1, 1);
   scene.add(light);
 
-  const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshLambertMaterial({ color: 0xff0000 }),
+  // const cube = new THREE.Mesh(
+  //   new THREE.BoxGeometry(1, 1, 1),
+  //   new THREE.MeshLambertMaterial({ color: 0xff0000 }),
+  // );
+  // scene.add(cube);
+
+  const material = new THREE.ShaderMaterial( {
+      vertexShader: `
+        out vec2 v_tex_coords;
+
+        void main() {
+          v_tex_coords = uv;
+          gl_Position = projectionMatrix * (modelViewMatrix * vec4(position, 1.0)); 
+        }
+      `,
+      fragmentShader: `
+        in vec2 v_tex_coords;
+        void main() {
+          gl_FragColor = vec4(v_tex_coords.x, 0.0f, v_tex_coords.y, 1.0f);
+        }
+      `
+  });
+
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(10.0, 10.0),
+    material
   );
-  scene.add(cube);
+  plane.rotateX(-Math.PI / 2.0);
+  scene.add(plane);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
