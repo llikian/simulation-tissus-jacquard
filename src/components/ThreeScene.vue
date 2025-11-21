@@ -2,10 +2,39 @@
 import { onMounted, ref } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { usePatternGrid } from '@/composables/patternGrid';
 
 const container = ref(null);
 
+const {
+  grid,
+  gridSize
+} = usePatternGrid();
+
 let renderer, camera, scene, clock, controls;
+
+const data = new Uint8Array(gridSize.value * gridSize.value);
+
+const texture = new THREE.DataTexture(
+  data,
+  gridSize.value,
+  gridSize.value,
+  THREE.RedFormat,      // 1 channel
+  THREE.UnsignedByteType
+);
+
+texture.magFilter = THREE.NearestFilter;  // important for grid sampling!
+texture.minFilter = THREE.NearestFilter;
+
+function update_texture() {
+  for (let y = 0; y < gridSize.value; y++) {
+    for (let x = 0; x < gridSize.value; x++) {
+      data[y * gridSize.value + x] = grid.value[y][x] ? 0 : 255;
+    }
+  }
+
+  texture.needsUpdate = true;
+}
 
 function setupScene() {
   const width = container.value.clientWidth;
@@ -32,8 +61,11 @@ function setupScene() {
   // );
   // scene.add(cube);
 
-  const material = new THREE.ShaderMaterial( {
-      vertexShader: `
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      u_grid: { value: texture }
+    },
+    vertexShader: `
         out vec2 v_tex_coords;
 
         void main() {
@@ -41,16 +73,21 @@ function setupScene() {
           gl_Position = projectionMatrix * (modelViewMatrix * vec4(position, 1.0)); 
         }
       `,
-      fragmentShader: `
+    fragmentShader: `
         in vec2 v_tex_coords;
+
+        uniform sampler2D u_grid;
+        
         void main() {
-          gl_FragColor = vec4(v_tex_coords.x, 0.0f, v_tex_coords.y, 1.0f);
+          float val = texture(u_grid, v_tex_coords).r;
+
+          gl_FragColor = vec4(vec3(val), 1.0f);
         }
       `
   });
 
   const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(10.0, 10.0),
+    new THREE.PlaneGeometry(10.0, 10.0, gridSize.value * 2, gridSize.value * 2),
     material
   );
   plane.rotateX(-Math.PI / 2.0);
@@ -65,6 +102,8 @@ function setupScene() {
 }
 
 function animate() {
+  update_texture();
+
   const delta = clock.getDelta();
   controls.update(delta);
   renderer.render(scene, camera);
