@@ -8,15 +8,15 @@ const emitter = mitt(); // Possible events 'gridChanged', 'gridSizeChanged'
 
 export function usePatternGrid() {
   function notifyCell(i,j) {
-    emitter.emit('cellChanged', {i, j});
+    emitter.emit('cellChanged', {"x": i, "y": j});
   }
 
   function notifyGrid() {
-    emitter.emit('gridChanged', grid.value);
+    emitter.emit('gridChanged');
   }
 
   function notifyGridSize() {
-    emitter.emit('gridSizeChanged', gridSize.value);
+    emitter.emit('gridSizeChanged');
   }
 
   function setPatternGrid(newGrid) {
@@ -67,7 +67,7 @@ export function usePatternGrid() {
     notifyGrid();
   }
 
-  function adjustGrid(newSize) {
+  function adjustGridSize(newSize) {
     const oldGrid = grid.value;
     const newGrid = [];
 
@@ -80,7 +80,6 @@ export function usePatternGrid() {
 
     grid.value = newGrid;
 
-    notifyGrid();
     notifyGridSize();
   }
 
@@ -93,6 +92,6 @@ export function usePatternGrid() {
     toggleCell,
     toggleGrid,
     fillPattern,
-    adjustGrid,
+    adjustGridSize,
   };
 }

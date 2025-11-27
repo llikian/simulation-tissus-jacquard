@@ -9,7 +9,7 @@ const {
   toggleCell,
   toggleGrid,
   fillPattern,
-  adjustGrid,
+  adjustGridSize,
 } = usePatternGrid();
 
 fillGrid(false);
@@ -24,7 +24,7 @@ const flatGrid = computed(() => {
 });
 
 watch(gridSize, (newValue) => {
-  adjustGrid(newValue);
+  adjustGridSize(newValue);
 });
 </script>
 

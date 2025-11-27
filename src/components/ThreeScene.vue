@@ -24,12 +24,19 @@ texture.magFilter = THREE.NearestFilter; // important for grid sampling!
 texture.minFilter = THREE.NearestFilter;
 
 function update_texture() {
+  console.log("update_texture");
   for (let y = 0; y < gridSize.value; y++) {
     for (let x = 0; x < gridSize.value; x++) {
       data[y * gridSize.value + x] = grid.value[y][x] ? 0 : 255;
     }
   }
 
+  texture.needsUpdate = true;
+}
+
+function update_texture_cell(cell) {
+  console.log("update_texture_cell");
+  data[cell.x * gridSize.value + cell.y] = grid.value[cell.x][cell.y] ? 0 : 255;
   texture.needsUpdate = true;
 }
 
@@ -57,6 +64,8 @@ function setupScene() {
   //   new THREE.MeshLambertMaterial({ color: 0xff0000 }),
   // );
   // scene.add(cube);
+
+  update_texture();
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
@@ -99,8 +108,6 @@ function setupScene() {
 }
 
 function animate() {
-  update_texture();
-
   const delta = clock.getDelta();
   controls.update(delta);
   renderer.render(scene, camera);
@@ -124,15 +131,23 @@ onMounted(() => {
 
   // Events when grid changed
   emitter.on('cellChanged', (cell) => {
-    console.log(cell.i, cell.j);
+    update_texture_cell(cell);
   });
 
-  emitter.on('gridChanged', (newGrid) => {
-    console.log(newGrid);
+  emitter.on('gridChanged', () => {
+    update_texture();
   });
 
-  emitter.on('gridSizeChanged', (newSize) => {
-    console.log(newSize);
+  emitter.on('gridSizeChanged', () => {
+    texture = new THREE.DataTexture(
+      data,
+      gridSize.value,
+      gridSize.value,
+      THREE.RedFormat, // 1 channel
+      THREE.UnsignedByteType,
+    );
+
+    update_texture();
   });
 });
 </script>
