@@ -6,10 +6,7 @@ import { usePatternGrid } from '@/composables/patternGrid';
 
 const container = ref(null);
 
-const {
-  grid,
-  gridSize
-} = usePatternGrid();
+const { emitter, grid, gridSize } = usePatternGrid();
 
 let renderer, camera, scene, clock, controls;
 
@@ -19,11 +16,11 @@ const texture = new THREE.DataTexture(
   data,
   gridSize.value,
   gridSize.value,
-  THREE.RedFormat,      // 1 channel
-  THREE.UnsignedByteType
+  THREE.RedFormat, // 1 channel
+  THREE.UnsignedByteType,
 );
 
-texture.magFilter = THREE.NearestFilter;  // important for grid sampling!
+texture.magFilter = THREE.NearestFilter; // important for grid sampling!
 texture.minFilter = THREE.NearestFilter;
 
 function update_texture() {
@@ -63,32 +60,32 @@ function setupScene() {
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      u_grid: { value: texture }
+      u_grid: { value: texture },
     },
     vertexShader: `
         out vec2 v_tex_coords;
 
         void main() {
           v_tex_coords = uv;
-          gl_Position = projectionMatrix * (modelViewMatrix * vec4(position, 1.0)); 
+          gl_Position = projectionMatrix * (modelViewMatrix * vec4(position, 1.0));
         }
       `,
     fragmentShader: `
         in vec2 v_tex_coords;
 
         uniform sampler2D u_grid;
-        
+
         void main() {
           float val = texture(u_grid, v_tex_coords).r;
 
           gl_FragColor = vec4(vec3(val), 1.0f);
         }
-      `
+      `,
   });
 
   const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(10.0, 10.0, gridSize.value * 2, gridSize.value * 2),
-    material
+    material,
   );
   plane.rotateX(-Math.PI / 2.0);
   scene.add(plane);
@@ -123,6 +120,15 @@ onMounted(() => {
 
   window.addEventListener('resize', () => {
     handleResize();
+  });
+
+  // Events when grid changed
+  emitter.on('gridChanged', (newGrid) => {
+    console.log(newGrid);
+  });
+
+  emitter.on('gridSizeChanged', (newSize) => {
+    console.log(newSize);
   });
 });
 </script>
