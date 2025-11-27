@@ -123,6 +123,10 @@ onMounted(() => {
   });
 
   // Events when grid changed
+  emitter.on('cellChanged', (cell) => {
+    console.log(cell.i, cell.j);
+  });
+
   emitter.on('gridChanged', (newGrid) => {
     console.log(newGrid);
   });

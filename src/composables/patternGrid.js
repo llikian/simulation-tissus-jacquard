@@ -7,6 +7,10 @@ const grid = ref([]);
 const emitter = mitt(); // Possible events 'gridChanged', 'gridSizeChanged'
 
 export function usePatternGrid() {
+  function notifyCell(i,j) {
+    emitter.emit('cellChanged', {i, j});
+  }
+
   function notifyGrid() {
     emitter.emit('gridChanged', grid.value);
   }
@@ -31,6 +35,8 @@ export function usePatternGrid() {
 
   function toggleCell(i, j) {
     grid.value[i][j] = !grid.value[i][j];
+    
+    notifyCell(i,j);
   }
 
   function toggleGrid() {
