@@ -8,26 +8,27 @@ const container = ref(null);
 
 const { emitter, grid, gridSize } = usePatternGrid();
 
-let renderer, camera, scene, clock, controls;
+let renderer, camera, scene, clock, controls, texture, data, material;
 
-const data = new Uint8Array(gridSize.value * gridSize.value);
+function init_texture() {
+  console.log(`init_texture (${gridSize.value})`)
 
-const texture = new THREE.DataTexture(
-  data,
-  gridSize.value,
-  gridSize.value,
-  THREE.RedFormat, // 1 channel
-  THREE.UnsignedByteType,
-);
-
-texture.magFilter = THREE.NearestFilter; // important for grid sampling!
-texture.minFilter = THREE.NearestFilter;
+  data = new Uint8Array(gridSize.value * gridSize.value);
+  texture = new THREE.DataTexture(
+    data,
+    gridSize.value,
+    gridSize.value,
+    THREE.RedFormat, // 1 channel
+    THREE.UnsignedByteType
+  );
+}
 
 function update_texture() {
   console.log("update_texture");
-  for (let y = 0; y < gridSize.value; y++) {
-    for (let x = 0; x < gridSize.value; x++) {
-      data[y * gridSize.value + x] = grid.value[y][x] ? 0 : 255;
+
+  for (let i = 0; i < gridSize.value; i++) {
+    for (let j = 0; j < gridSize.value; j++) {
+      data[(gridSize.value - 1 - i) * gridSize.value + j] = grid.value[i][j] ? 0 : 255;
     }
   }
 
@@ -35,8 +36,8 @@ function update_texture() {
 }
 
 function update_texture_cell(cell) {
-  console.log("update_texture_cell");
-  data[cell.x * gridSize.value + cell.y] = grid.value[cell.x][cell.y] ? 0 : 255;
+  console.log(`update_texture_cell (${cell.i}, ${cell.j})`);
+  data[(gridSize.value - 1 - cell.i) * gridSize.value + cell.j] = grid.value[cell.i][cell.j] ? 0 : 255;
   texture.needsUpdate = true;
 }
 
@@ -59,15 +60,10 @@ function setupScene() {
   light.position.set(1, 1, 1);
   scene.add(light);
 
-  // const cube = new THREE.Mesh(
-  //   new THREE.BoxGeometry(1, 1, 1),
-  //   new THREE.MeshLambertMaterial({ color: 0xff0000 }),
-  // );
-  // scene.add(cube);
-
+  init_texture();
   update_texture();
 
-  const material = new THREE.ShaderMaterial({
+  material = new THREE.ShaderMaterial({
     uniforms: {
       u_grid: { value: texture },
     },
@@ -139,15 +135,9 @@ onMounted(() => {
   });
 
   emitter.on('gridSizeChanged', () => {
-    texture = new THREE.DataTexture(
-      data,
-      gridSize.value,
-      gridSize.value,
-      THREE.RedFormat, // 1 channel
-      THREE.UnsignedByteType,
-    );
-
+    init_texture();
     update_texture();
+    material.uniforms.u_grid.value = texture
   });
 });
 </script>
