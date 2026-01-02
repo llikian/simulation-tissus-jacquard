@@ -8,37 +8,57 @@ const container = ref(null);
 
 const { emitter, grid, gridSize } = usePatternGrid();
 
-let renderer, camera, scene, clock, controls, texture, data, material;
+let renderer, camera, scene, clock, controls;
+let curves, curveInstances, lineInstances; // Curves are the rows (they go up or down the lines), the lines are straight
+const curveMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+const threadDistance = 0.1;
 
-function init_texture() {
-  console.log(`init_texture (${gridSize.value})`)
-
-  data = new Uint8Array(gridSize.value * gridSize.value);
-  texture = new THREE.DataTexture(
-    data,
-    gridSize.value,
-    gridSize.value,
-    THREE.RedFormat, // 1 channel
-    THREE.UnsignedByteType
-  );
-}
-
-function update_texture() {
-  console.log("update_texture");
-
-  for (let i = 0; i < gridSize.value; i++) {
-    for (let j = 0; j < gridSize.value; j++) {
-      data[(gridSize.value - 1 - i) * gridSize.value + j] = grid.value[i][j] ? 0 : 255;
-    }
+function init_curves() {
+  if (curveInstances != null) {
+    curveInstances.forEach((instance) => scene.remove(instance));
   }
 
-  texture.needsUpdate = true;
+  if (lineInstances != null) {
+    lineInstances.forEach((instance) => scene.remove(instance));
+  }
+
+  curves = new Array(gridSize.value);
+  curveInstances = new Array(gridSize.value);
+  lineInstances = new Array(gridSize.value);
+
+  for (let i = 0; i < gridSize.value; i++) {
+    curves[i] = new THREE.SplineCurve(new Array(gridSize.value));
+    for (let j = 0; j < gridSize.value; j++) {
+      curves[i].points[j] = new THREE.Vector2(threadDistance * j, 0.0)
+    }
+
+    curveInstances[i] = new THREE.Line(new THREE.BufferGeometry(), curveMaterial);
+    curveInstances[i].translateX(threadDistance * (-gridSize.value / 2.0));
+    curveInstances[i].translateZ(threadDistance * (-gridSize.value / 2.0 + i));
+    scene.add(curveInstances[i]);
+
+    lineInstances[i] = new THREE.Line(new THREE.BufferGeometry(), lineMaterial);
+    lineInstances[i].geometry.setFromPoints(new Array(
+      new THREE.Vector3(0.0, 0.0, 0.0),
+      new THREE.Vector3(0.0, 0.0, threadDistance * gridSize.value)
+    ));
+    lineInstances[i].translateX(threadDistance * (-gridSize.value / 2.0 + i));
+    lineInstances[i].translateZ(threadDistance * (-0.5 - gridSize.value / 2.0));
+    scene.add(lineInstances[i]);
+  }
+
+  update_curves();
 }
 
-function update_texture_cell(cell) {
-  console.log(`update_texture_cell (${cell.i}, ${cell.j})`);
-  data[(gridSize.value - 1 - cell.i) * gridSize.value + cell.j] = grid.value[cell.i][cell.j] ? 0 : 255;
-  texture.needsUpdate = true;
+function update_curves() {
+  for (let i = 0; i < gridSize.value; i++) {
+    const curve = curves[i];
+    for (let j = 0; j < gridSize.value; j++) {
+      curve.points[j].y = grid.value[i][j] ? -threadDistance / 2 : threadDistance / 2;
+    }
+    curveInstances[i].geometry.setFromPoints(curve.getPoints(gridSize.value * 4));
+  }
 }
 
 function setupScene() {
@@ -52,7 +72,8 @@ function setupScene() {
   clock = new THREE.Clock();
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0.459, 0.616, 0.851);
+  //scene.background = new THREE.Color(0.459, 0.616, 0.851);
+  scene.background = new THREE.Color(0.03, 0.03, 0.03);
 
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
 
@@ -60,40 +81,7 @@ function setupScene() {
   light.position.set(1, 1, 1);
   scene.add(light);
 
-  init_texture();
-  update_texture();
-
-  material = new THREE.ShaderMaterial({
-    uniforms: {
-      u_grid: { value: texture },
-    },
-    vertexShader: `
-        out vec2 v_tex_coords;
-
-        void main() {
-          v_tex_coords = uv;
-          gl_Position = projectionMatrix * (modelViewMatrix * vec4(position, 1.0));
-        }
-      `,
-    fragmentShader: `
-        in vec2 v_tex_coords;
-
-        uniform sampler2D u_grid;
-
-        void main() {
-          float val = texture(u_grid, v_tex_coords).r;
-
-          gl_FragColor = vec4(vec3(val), 1.0f);
-        }
-      `,
-  });
-
-  const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(10.0, 10.0, gridSize.value * 2, gridSize.value * 2),
-    material,
-  );
-  plane.rotateX(-Math.PI / 2.0);
-  scene.add(plane);
+  init_curves();
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
@@ -127,17 +115,16 @@ onMounted(() => {
 
   // Events when grid changed
   emitter.on('cellChanged', (cell) => {
-    update_texture_cell(cell);
+    curves[cell.i].points[cell.j].y = grid.value[cell.i][cell.j] ? -threadDistance / 2 : threadDistance / 2;
+    curveInstances[cell.i].geometry.setFromPoints(curves[cell.i].getPoints(gridSize.value * 4));
   });
 
   emitter.on('gridChanged', () => {
-    update_texture();
+    update_curves();
   });
 
   emitter.on('gridSizeChanged', () => {
-    init_texture();
-    update_texture();
-    material.uniforms.u_grid.value = texture
+    init_curves();
   });
 });
 </script>
