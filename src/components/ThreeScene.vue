@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { usePatternGrid } from '@/composables/patternGrid';
@@ -10,54 +10,73 @@ const { emitter, grid, gridSize } = usePatternGrid();
 
 let renderer, camera, scene, clock, controls;
 let curves, curveInstances, lineInstances; // Curves are the rows (they go up or down the lines), the lines are straight
-const curveMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-const lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+const curveMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+const lineMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
 const threadDistance = 0.1;
+
+function create_tube(curve) {
+  return new THREE.TubeGeometry(curve, gridSize.value * 4, threadDistance / 2.0, 8, false);
+}
 
 function init_curves() {
   if (curveInstances != null) {
-    curveInstances.forEach((instance) => scene.remove(instance));
+    curveInstances.forEach((mesh) => {
+      mesh.geometry.dispose();
+      scene.remove(mesh);
+    });
   }
 
   if (lineInstances != null) {
-    lineInstances.forEach((instance) => scene.remove(instance));
+    lineInstances.forEach((mesh) => {
+      mesh.geometry.dispose();
+      scene.remove(mesh);
+    });
   }
 
-  curves = new Array(gridSize.value);
-  curveInstances = new Array(gridSize.value);
-  lineInstances = new Array(gridSize.value);
+  curves = [];
+  curveInstances = [];
+  lineInstances = [];
 
   for (let i = 0; i < gridSize.value; i++) {
-    curves[i] = new THREE.SplineCurve(new Array(gridSize.value));
+    curves.push(new THREE.CatmullRomCurve3([]));
     for (let j = 0; j < gridSize.value; j++) {
-      curves[i].points[j] = new THREE.Vector2(threadDistance * j, 0.0)
+      curves[i].points.push(new THREE.Vector3(threadDistance * j, 0.0, threadDistance * i));
     }
 
-    curveInstances[i] = new THREE.Line(new THREE.BufferGeometry(), curveMaterial);
+    curveInstances.push(new THREE.Mesh(create_tube(curves[i]), curveMaterial));
     curveInstances[i].translateX(threadDistance * (-gridSize.value / 2.0));
-    curveInstances[i].translateZ(threadDistance * (-gridSize.value / 2.0 + i));
+    curveInstances[i].translateZ(threadDistance * (-gridSize.value / 2.0));
     scene.add(curveInstances[i]);
 
-    lineInstances[i] = new THREE.Line(new THREE.BufferGeometry(), lineMaterial);
-    lineInstances[i].geometry.setFromPoints(new Array(
-      new THREE.Vector3(0.0, 0.0, 0.0),
-      new THREE.Vector3(0.0, 0.0, threadDistance * gridSize.value)
-    ));
-    lineInstances[i].translateX(threadDistance * (-gridSize.value / 2.0 + i));
-    lineInstances[i].translateZ(threadDistance * (-0.5 - gridSize.value / 2.0));
+    const start_point = new THREE.Vector3(threadDistance * (-gridSize.value / 2.0 + i),
+      0.0,
+      threadDistance * (-0.5 - gridSize.value / 2.0));
+    lineInstances[i] = new THREE.Mesh(
+      create_tube(new THREE.LineCurve3(
+        start_point,
+        new THREE.Vector3(0.0, 0.0, threadDistance * gridSize.value).add(start_point)
+      )), lineMaterial
+    )
     scene.add(lineInstances[i]);
   }
 
   update_curves();
 }
 
+function update_curve(curve_index) {
+  const curve = curves[curve_index];
+
+  for (let j = 0; j < gridSize.value; j++) {
+    curve.points[j].y = grid.value[curve_index][j] ? -threadDistance / 2.0 : threadDistance / 2.0;
+  }
+
+  curveInstances[curve_index].geometry.dispose();
+  curveInstances[curve_index].geometry = create_tube(curve);
+}
+
 function update_curves() {
   for (let i = 0; i < gridSize.value; i++) {
-    const curve = curves[i];
-    for (let j = 0; j < gridSize.value; j++) {
-      curve.points[j].y = grid.value[i][j] ? -threadDistance / 2 : threadDistance / 2;
-    }
-    curveInstances[i].geometry.setFromPoints(curve.getPoints(gridSize.value * 4));
+    update_curve(i);
   }
 }
 
@@ -115,8 +134,7 @@ onMounted(() => {
 
   // Events when grid changed
   emitter.on('cellChanged', (cell) => {
-    curves[cell.i].points[cell.j].y = grid.value[cell.i][cell.j] ? -threadDistance / 2 : threadDistance / 2;
-    curveInstances[cell.i].geometry.setFromPoints(curves[cell.i].getPoints(gridSize.value * 4));
+    update_curve(cell.i);
   });
 
   emitter.on('gridChanged', () => {
