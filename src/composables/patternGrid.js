@@ -3,6 +3,7 @@ import mitt from 'mitt';
 
 const gridSize = ref(8);
 const grid = ref([]);
+let tileCount = ref(1);
 
 const emitter = mitt(); // Possible events 'gridChanged', 'gridSizeChanged'
 
@@ -80,6 +81,7 @@ export function usePatternGrid() {
     emitter,
     grid,
     gridSize,
+    tileCount,
     setPatternGrid,
     fillGrid,
     toggleCell,

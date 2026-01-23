@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import { usePatternGrid } from '@/composables/patternGrid';
 
-const { grid, gridSize, fillGrid, toggleCell, toggleGrid, fillPattern, adjustGridSize } =
+const { grid, gridSize, tileCount, fillGrid, toggleCell, toggleGrid, fillPattern, adjustGridSize } =
   usePatternGrid();
 
 const patternWidth = ref(2);
@@ -60,6 +60,10 @@ watch([patternWidth, patternHeight], resizePattern);
       <label>
         Grid size :
         <input type="number" v-model="gridSize" min="1" />
+      </label>
+      <label>
+        Tile count :
+        <input type="number" v-model="tileCount" min="1" />
       </label>
       <div class="grid-buttons">
         <button @click="fillGrid(false)">Clear</button>

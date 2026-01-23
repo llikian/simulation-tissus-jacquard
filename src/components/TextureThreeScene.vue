@@ -1,20 +1,21 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { usePatternGrid } from '@/composables/patternGrid';
 
 const container = ref(null);
 
-const { emitter, grid, gridSize } = usePatternGrid();
+const { emitter, grid, gridSize, tileCount } = usePatternGrid();
 
 let renderer, camera, scene, clock, controls;
 let textureCanvas, textureCtx, gridTexture, textureMesh;
 
-let cellSize = 1;
-const texSize = computed(() => gridSize.value * cellSize);
+const textureResolution = 256;
 
 function drawGrid() {
+  const cellSize = textureResolution / gridSize.value;
+
   for (let i = 0; i < gridSize.value; i++) {
     for (let j = 0; j < gridSize.value; j++) {
       textureCtx.fillStyle = grid.value[i][j] ? '#050505' : '#d0d0d0';
@@ -26,8 +27,8 @@ function drawGrid() {
 
 function init_texture() {
   textureCanvas = document.createElement('canvas');
-  textureCanvas.width = texSize.value;
-  textureCanvas.height = texSize.value;
+  textureCanvas.width = textureResolution;
+  textureCanvas.height = textureResolution;
   textureCtx = textureCanvas.getContext('2d');
 
   drawGrid();
@@ -35,18 +36,19 @@ function init_texture() {
   gridTexture = new THREE.CanvasTexture(textureCanvas);
   gridTexture.magFilter = THREE.NearestFilter;
   gridTexture.minFilter = THREE.NearestFilter;
-  gridTexture.wrapS = THREE.ClampToEdgeWrapping;
-  gridTexture.wrapT = THREE.ClampToEdgeWrapping;
+  gridTexture.wrapS = THREE.RepeatWrapping;
+  gridTexture.wrapT = THREE.RepeatWrapping;
+
+  gridTexture.repeat.set(tileCount.value, tileCount.value);
 
   const material = new THREE.MeshBasicMaterial({
     map: gridTexture,
     side: THREE.DoubleSide,
   });
 
-  const planeSize = gridSize.value;
-  const geometry = new THREE.PlaneGeometry(planeSize, planeSize);
-
+  const geometry = new THREE.PlaneGeometry(1, 1);
   textureMesh = new THREE.Mesh(geometry, material);
+
   scene.add(textureMesh);
 }
 
@@ -118,6 +120,13 @@ onMounted(() => {
   emitter.on('gridSizeChanged', () => {
     update_texture();
   });
+});
+
+watch(tileCount, (newValue) => {
+  if (!gridTexture || newValue <= 0) return;
+
+  gridTexture.repeat.set(newValue, newValue);
+  gridTexture.needsUpdate = true;
 });
 </script>
 
