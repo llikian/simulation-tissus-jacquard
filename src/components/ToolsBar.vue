@@ -1,9 +1,12 @@
 <script setup>
-defineProps(['onToggleGrid', 'displayGrid']);
+defineProps(['onToggleGrid', 'displayGrid', 'onToggleView', 'currentView']);
 </script>
 
 <template>
   <nav>
+    <button @click="onToggleView" :class="{ active: currentView }" class="toggle-btn">
+      Toggle View
+    </button>
     <button @click="onToggleGrid" :class="{ active: displayGrid }" class="toggle-btn">
       Toggle Grid
     </button>

@@ -1,5 +1,6 @@
 <script setup>
-import ThreeScene from './components/ThreeScene.vue';
+import MeshThreeScene from './components/MeshThreeScene.vue';
+import TextureThreeScene from './components/TextureThreeScene.vue';
 import ToolsBar from './components/ToolsBar.vue';
 import InputGrid from './components/InputGrid.vue';
 import { usePatternGrid } from './composables/patternGrid';
@@ -11,21 +12,33 @@ const { fillGrid } = usePatternGrid();
 fillGrid(false); // grid initialisation
 
 const displayGrid = ref(true);
+const meshView = ref(true);
 const groupKey = ref(0);
 
 function toggleGrid() {
   displayGrid.value = !displayGrid.value;
   groupKey.value++;
 }
+
+function toggleView() {
+  meshView.value = !meshView.value;
+  groupKey.value++;
+}
 </script>
 
 <template>
   <div class="page">
-    <ToolsBar :onToggleGrid="toggleGrid" :displayGrid="displayGrid" />
+    <ToolsBar
+      :onToggleGrid="toggleGrid"
+      :displayGrid="displayGrid"
+      :onToggleView="toggleView"
+      :currentView="meshView"
+    />
     <div class="content">
       <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
         <Panel :defaultSize="displayGrid ? 70 : 100" :minSize="50">
-          <ThreeScene />
+          <MeshThreeScene v-if="meshView" />
+          <TextureThreeScene v-else />
         </Panel>
         <PanelResizeHandle class="resize-handle" />
         <Panel :defaultSize="30" :minSize="displayGrid ? 10 : 0" :maxSize="displayGrid ? 50 : 0">
