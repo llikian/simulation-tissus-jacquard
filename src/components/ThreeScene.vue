@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { usePatternGrid } from '@/composables/patternGrid';
@@ -48,15 +48,20 @@ function init_curves() {
     curveInstances[i].translateZ(threadDistance * (-gridSize.value / 2.0));
     scene.add(curveInstances[i]);
 
-    const start_point = new THREE.Vector3(threadDistance * (-gridSize.value / 2.0 + i),
+    const start_point = new THREE.Vector3(
+      threadDistance * (-gridSize.value / 2.0 + i),
       0.0,
-      threadDistance * (-0.5 - gridSize.value / 2.0));
+      threadDistance * (-0.5 - gridSize.value / 2.0),
+    );
     lineInstances[i] = new THREE.Mesh(
-      create_tube(new THREE.LineCurve3(
-        start_point,
-        new THREE.Vector3(0.0, 0.0, threadDistance * gridSize.value).add(start_point)
-      )), lineMaterial
-    )
+      create_tube(
+        new THREE.LineCurve3(
+          start_point,
+          new THREE.Vector3(0.0, 0.0, threadDistance * gridSize.value).add(start_point),
+        ),
+      ),
+      lineMaterial,
+    );
     scene.add(lineInstances[i]);
   }
 

@@ -2,9 +2,13 @@
 import ThreeScene from './components/ThreeScene.vue';
 import ToolsBar from './components/ToolsBar.vue';
 import InputGrid from './components/InputGrid.vue';
+import { usePatternGrid } from './composables/patternGrid';
 
 import { ref } from 'vue';
 import { Panel, PanelGroup, PanelResizeHandle } from 'vue-resizable-panels';
+
+const { fillGrid } = usePatternGrid();
+fillGrid(false); // grid initialisation
 
 const displayGrid = ref(true);
 const groupKey = ref(0);

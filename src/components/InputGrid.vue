@@ -2,17 +2,8 @@
 import { ref, watch, computed } from 'vue';
 import { usePatternGrid } from '@/composables/patternGrid';
 
-const {
-  grid,
-  gridSize,
-  fillGrid,
-  toggleCell,
-  toggleGrid,
-  fillPattern,
-  adjustGridSize,
-} = usePatternGrid();
-
-fillGrid(false);
+const { grid, gridSize, fillGrid, toggleCell, toggleGrid, fillPattern, adjustGridSize } =
+  usePatternGrid();
 
 const fillF = ref(1);
 const fillT = ref(1);
