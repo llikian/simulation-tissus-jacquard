@@ -11,7 +11,7 @@ const { emitter, grid, gridSize, tileCount } = usePatternGrid();
 let renderer, camera, scene, clock, controls;
 let textureCanvas, textureCtx, gridTexture, textureMesh;
 
-const textureResolution = 256;
+const textureResolution = 1024;
 
 const materialA = new THREE.Color(0xd00000);
 const materialB = new THREE.Color(0x0000d0);

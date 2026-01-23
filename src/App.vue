@@ -1,6 +1,7 @@
 <script setup>
-import MeshThreeScene from './components/MeshThreeScene.vue';
-import TextureThreeScene from './components/TextureThreeScene.vue';
+// import MeshThreeScene from './components/MeshThreeScene.vue';
+// import TextureThreeScene from './components/TextureThreeScene.vue';
+import ThreeScene from './components/ThreeScene.vue';
 import ToolsBar from './components/ToolsBar.vue';
 import InputGrid from './components/InputGrid.vue';
 import { usePatternGrid } from './composables/patternGrid';
@@ -22,7 +23,6 @@ function toggleGrid() {
 
 function toggleView() {
   meshView.value = !meshView.value;
-  groupKey.value++;
 }
 </script>
 
@@ -37,8 +37,9 @@ function toggleView() {
     <div class="content">
       <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
         <Panel :defaultSize="displayGrid ? 70 : 100" :minSize="50">
-          <MeshThreeScene v-if="meshView" />
-          <TextureThreeScene v-else />
+          <ThreeScene :meshView="meshView" />
+          <!-- <MeshThreeScene v-if="meshView" />
+          <TextureThreeScene v-else /> -->
         </Panel>
         <PanelResizeHandle class="resize-handle" />
         <Panel :defaultSize="30" :minSize="displayGrid ? 10 : 0" :maxSize="displayGrid ? 50 : 0">
