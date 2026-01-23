@@ -8,7 +8,7 @@ const emitter = mitt(); // Possible events 'gridChanged', 'gridSizeChanged'
 
 export function usePatternGrid() {
   function notifyCell(i, j) {
-    emitter.emit('cellChanged', { "i": i, "j": j });
+    emitter.emit('cellChanged', { i: i, j: j });
   }
 
   function notifyGrid() {
@@ -45,22 +45,15 @@ export function usePatternGrid() {
     notifyGrid();
   }
 
-  function fillPattern(f, t, offsetDelay, offset) {
-    const cycle = f + t;
-
-    let shift = 0;
+  function fillPattern(pattern) {
+    const pH = pattern.length;
+    const pW = pattern[0].length;
 
     for (let i = 0; i < gridSize.value; i++) {
-      if (offsetDelay > 0) {
-        shift = (Math.floor(i / offsetDelay) % 2) * offset;
-      }
-
       for (let j = 0; j < gridSize.value; j++) {
-        const shiftedIndex = (j - shift + gridSize.value) % gridSize.value;
-
-        const posInCycle = shiftedIndex % cycle;
-
-        grid.value[i][j] = posInCycle >= f;
+        const pi = i % pH;
+        const pj = j % pW;
+        grid.value[i][j] = pattern[pi][pj];
       }
     }
 

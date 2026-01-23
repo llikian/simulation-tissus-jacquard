@@ -5,18 +5,44 @@ import { usePatternGrid } from '@/composables/patternGrid';
 const { grid, gridSize, fillGrid, toggleCell, toggleGrid, fillPattern, adjustGridSize } =
   usePatternGrid();
 
-const fillF = ref(1);
-const fillT = ref(1);
-const fillOffsetDelay = ref(1);
-const fillOffset = ref(1);
+const patternWidth = ref(2);
+const patternHeight = ref(2);
+
+const pattern = ref([]);
+
+function resizePattern() {
+  const old = pattern.value;
+  const newGrid = [];
+
+  for (let i = 0; i < patternHeight.value; i++) {
+    newGrid[i] = [];
+    for (let j = 0; j < patternWidth.value; j++) {
+      newGrid[i][j] = old[i]?.[j] ?? false;
+    }
+  }
+
+  pattern.value = newGrid;
+}
+
+resizePattern();
 
 const flatGrid = computed(() => {
   return grid.value.flatMap((row, i) => row.map((value, j) => ({ i, j, value })));
 });
 
+const flatPattern = computed(() => {
+  return pattern.value.flatMap((row, i) => row.map((value, j) => ({ i, j, value })));
+});
+
+function togglePatternCell(i, j) {
+  pattern.value[i][j] = !pattern.value[i][j];
+}
+
 watch(gridSize, (newValue) => {
   adjustGridSize(newValue);
 });
+
+watch([patternWidth, patternHeight], resizePattern);
 </script>
 
 <template>
@@ -33,7 +59,7 @@ watch(gridSize, (newValue) => {
     <div class="grid-settings">
       <label>
         Grid size :
-        <input type="number" v-model="gridSize" />
+        <input type="number" v-model="gridSize" min="1" />
       </label>
       <div class="grid-buttons">
         <button @click="fillGrid(false)">Clear</button>
@@ -41,11 +67,26 @@ watch(gridSize, (newValue) => {
         <button @click="toggleGrid">Flip</button>
       </div>
       <div class="pattern-maker">
-        <label>X False number : <input type="number" min="0" v-model="fillF" /></label>
-        <label>X True number : <input type="number" min="0" v-model="fillT" /></label>
-        <label>Y offset delay : <input type="number" min="0" v-model="fillOffsetDelay" /></label>
-        <label>Y offset : <input type="number" min="0" v-model="fillOffset" /></label>
-        <button @click="fillPattern(fillF, fillT, fillOffsetDelay, fillOffset)">Pattern</button>
+        <div class="pattern-size">
+          <label
+            >Width
+            <input type="number" v-model="patternWidth" min="1" />
+          </label>
+          <label
+            >Height
+            <input type="number" v-model="patternHeight" min="1" />
+          </label>
+          <button @click="fillPattern(pattern)">Pattern</button>
+        </div>
+        <div class="pattern" :style="{ '--pattern-width': patternWidth }">
+          <div
+            v-for="(pattern, index) in flatPattern"
+            :key="index"
+            class="cell"
+            :class="{ active: pattern.value }"
+            @click="togglePatternCell(pattern.i, pattern.j)"
+          ></div>
+        </div>
       </div>
     </div>
   </div>
@@ -67,6 +108,19 @@ watch(gridSize, (newValue) => {
   padding: 0 0.5rem;
 }
 
+.pattern {
+  display: grid;
+  width: 95%;
+  max-height: 50%;
+  aspect-ratio: 1;
+  grid-template-columns: repeat(var(--pattern-width), 1fr);
+  padding: 0 0.5rem;
+}
+
+.pattern-size {
+  display: flex;
+}
+
 .cell {
   background-color: var(--text);
   border: 1px solid var(--background);
@@ -82,6 +136,7 @@ watch(gridSize, (newValue) => {
 .grid-settings {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 .grid-buttons {
@@ -90,11 +145,12 @@ watch(gridSize, (newValue) => {
 }
 
 .pattern-maker {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   grid-template-columns: auto 1fr;
-  column-gap: 10px;
-  row-gap: 8px;
   max-width: 16rem;
+  max-height: 20%;
+  gap: 1rem;
   align-items: center;
 }
 
