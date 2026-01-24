@@ -4,12 +4,12 @@ import { watch } from 'vue';
 import { usePatternGrid } from '@/composables/patternGrid';
 const { grid, gridSize, tileCount } = usePatternGrid();
 
-let textureCanvas, textureCtx, gridTexture, textureMesh;
+import { useClothMaterial } from './ClothMaterial';
+const { fabricsProperties, getMixedMaterial, updateTileCount } = useClothMaterial();
+
+let textureCanvas, textureCtx, maskTexture, mesh;
 
 const textureResolution = 1024;
-
-const materialA = new THREE.Color(0xd00000);
-const materialB = new THREE.Color(0x0000d0);
 
 function drawGrid() {
   const cellSize = textureResolution / gridSize.value;
@@ -24,9 +24,9 @@ function drawGrid() {
 }
 
 watch(tileCount, (newValue) => {
-  if (!textureMesh || newValue <= 0) return;
+  if (!mesh || newValue <= 0) return;
 
-  textureMesh.material.uniforms.tileCount.value = newValue;
+  updateTileCount(mesh.material, newValue);
 });
 
 export function useClothTexture() {
@@ -38,53 +38,32 @@ export function useClothTexture() {
 
     drawGrid();
 
-    gridTexture = new THREE.CanvasTexture(textureCanvas);
-    gridTexture.magFilter = THREE.NearestFilter;
-    gridTexture.minFilter = THREE.NearestFilter;
-    gridTexture.wrapS = THREE.RepeatWrapping;
-    gridTexture.wrapT = THREE.RepeatWrapping;
+    maskTexture = new THREE.CanvasTexture(textureCanvas);
+    maskTexture.magFilter = THREE.NearestFilter;
+    maskTexture.minFilter = THREE.NearestFilter;
+    maskTexture.wrapS = THREE.RepeatWrapping;
+    maskTexture.wrapT = THREE.RepeatWrapping;
 
-    const shaderMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        mask: { value: gridTexture },
-        colorA: { value: materialA },
-        colorB: { value: materialB },
-        tileCount: { value: tileCount.value },
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D mask;
-        uniform vec3 colorA;
-        uniform vec3 colorB;
-        uniform float tileCount;
-
-        varying vec2 vUv;
-
-        void main() {
-          vec2 uvTiled = fract(vUv * tileCount);
-          float m = texture2D(mask, uvTiled).r;
-          gl_FragColor = vec4(mix(colorA, colorB, m), 1.0);
-        }
-      `,
-      side: THREE.DoubleSide,
-    });
+    const shaderMaterial = getMixedMaterial(
+      fabricsProperties.linen,
+      fabricsProperties.cotton,
+      0xd00000,
+      0x0000d0,
+      maskTexture,
+      tileCount.value,
+    );
 
     const geometry = new THREE.PlaneGeometry(1, 1);
-    textureMesh = new THREE.Mesh(geometry, shaderMaterial);
-    textureMesh.rotation.x = -(Math.PI / 2);
+    mesh = new THREE.Mesh(geometry, shaderMaterial);
+    mesh.rotation.x = -(Math.PI / 2);
 
-    scene.add(textureMesh);
+    scene.add(mesh);
   }
 
   function updateTexture() {
     drawGrid();
-    gridTexture.needsUpdate = true;
+    maskTexture.needsUpdate = true;
+    // updateMask(mesh.material, maskTexture);
   }
 
   return { initTexture, updateTexture };
