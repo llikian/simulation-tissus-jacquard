@@ -18,7 +18,6 @@ const groupKey = ref(0);
 
 function toggleGrid() {
   displayGrid.value = !displayGrid.value;
-  groupKey.value++;
 }
 
 function toggleView() {
@@ -42,8 +41,13 @@ function toggleView() {
           <TextureThreeScene v-else /> -->
         </Panel>
         <PanelResizeHandle class="resize-handle" />
-        <Panel :defaultSize="30" :minSize="displayGrid ? 10 : 0" :maxSize="displayGrid ? 50 : 0">
-          <InputGrid v-show="displayGrid" />
+        <Panel
+          v-show="displayGrid"
+          :defaultSize="displayGrid ? 30 : 0"
+          :minSize="displayGrid ? 10 : 0"
+          :maxSize="displayGrid ? 50 : 0"
+        >
+          <InputGrid />
         </Panel>
       </PanelGroup>
     </div>
