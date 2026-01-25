@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import * as THREE from 'three';
 
 const fabricsProperties = {
@@ -29,31 +30,47 @@ const fabricsProperties = {
   },
 };
 
+let mixedMaterial = null;
+
+const propertiesA = ref(fabricsProperties.silk);
+const propertiesB = ref(fabricsProperties.cotton);
+const colorA = ref(0xd00000);
+const colorB = ref(0x0000d0);
+
 export function useClothMaterial() {
-  function getMaterial(properties, color) {
-    return new THREE.MeshPhysicalMaterial({
-      map: color,
-      roughness: properties.roughness,
-      metalness: properties.metalness,
-      sheen: properties.sheen,
-      sheenRoughness: properties.sheenRoughness,
-      anisotropy: properties.anisotropy,
-      specularIntensity: properties.specularIntensity,
-    });
-  }
+  // function getMaterial(properties, color) {
+  //   return new THREE.MeshPhysicalMaterial({
+  //     map: color,
+  //     roughness: properties.roughness,
+  //     metalness: properties.metalness,
+  //     sheen: properties.sheen,
+  //     sheenRoughness: properties.sheenRoughness,
+  //     anisotropy: properties.anisotropy,
+  //     specularIntensity: properties.specularIntensity,
+  //   });
+  // }
 
-  function updateMaterial(material, properties, color) {
-    material.map = color;
-    material.roughness = properties.roughness;
-    material.metalness = properties.metalness;
-    material.sheen = properties.sheen;
-    material.sheenRoughness = properties.sheenRoughness;
-    material.anisotropy = properties.anisotropy;
-    material.specularIntensity = properties.specularIntensity;
-  }
+  // function updateMaterial(material, properties, color) {
+  //   material.map = color;
+  //   material.roughness = properties.roughness;
+  //   material.metalness = properties.metalness;
+  //   material.sheen = properties.sheen;
+  //   material.sheenRoughness = properties.sheenRoughness;
+  //   material.anisotropy = properties.anisotropy;
+  //   material.specularIntensity = properties.specularIntensity;
+  // }
 
-  function getMixedMaterial(propertiesA, propertiesB, colorA, colorB, mask, tileCount) {
+  function getMixedMaterial(mask, tileCount) {
     const tiling = new THREE.Vector2(tileCount, tileCount);
+
+    if (mixedMaterial) {
+      const shader = mixedMaterial.userData.shader;
+      if (shader) {
+        shader.uniforms.mask.value = mask;
+        shader.uniforms.tiling.value = tiling;
+      }
+      return mixedMaterial;
+    }
 
     const mat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -68,12 +85,12 @@ export function useClothMaterial() {
       shader.uniforms.mask = { value: mask };
       shader.uniforms.tiling = { value: tiling };
 
-      shader.uniforms.colorA = { value: new THREE.Color(colorA) };
-      shader.uniforms.colorB = { value: new THREE.Color(colorB) };
+      shader.uniforms.colorA = { value: new THREE.Color(colorA.value) };
+      shader.uniforms.colorB = { value: new THREE.Color(colorB.value) };
 
-      for (const key in propertiesA) {
-        shader.uniforms[key + 'A'] = { value: propertiesA[key] };
-        shader.uniforms[key + 'B'] = { value: propertiesB[key] };
+      for (const key in propertiesA.value) {
+        shader.uniforms[key + 'A'] = { value: propertiesA.value[key] };
+        shader.uniforms[key + 'B'] = { value: propertiesB.value[key] };
       }
 
       shader.fragmentShader = shader.fragmentShader
@@ -154,68 +171,69 @@ export function useClothMaterial() {
         );
     };
 
-    console.log('Created Mixed Material');
-
-    return mat;
+    mixedMaterial = mat;
+    return mixedMaterial;
   }
 
-  function updateMixedMaterial(material, propertiesA, propertiesB, colorA, colorB, mask) {
-    const shader = material.userData.shader;
-    if (!shader) return;
+  function updateProperiesA(newProperties) {
+    const shader = mixedMaterial.userData.shader;
+    if (!shader || !newProperties) return;
+
+    propertiesA.value = newProperties;
 
     const u = shader.uniforms;
 
-    if (mask) u.mask.value = mask;
-
-    if (colorA) u.colorA.value.set(colorA);
-    if (colorB) u.colorB.value.set(colorB);
-
-    if ((propertiesA == undefined) & (propertiesB == undefined)) return;
-
-    const keys = [
-      'roughness',
-      'metalness',
-      'sheen',
-      'sheenRoughness',
-      'anisotropy',
-      'specularIntensity',
-    ];
-
-    for (const key of keys) {
-      if (propertiesA[key] !== undefined) {
-        u[key + 'A'].value = propertiesA[key];
-      }
-
-      if (propertiesB[key] !== undefined) {
-        u[key + 'B'].value = propertiesB[key];
-      }
+    for (const key of propertiesA.value.keys) {
+      u[key + 'A'].value = propertiesA.value[key];
     }
   }
 
-  function updateTileCount(material, newTileCount) {
-    const shader = material.userData.shader;
+  function updateProperiesB(newProperties) {
+    const shader = mixedMaterial.userData.shader;
+    if (!shader || !newProperties) return;
+
+    propertiesB.value = newProperties;
+
+    const u = shader.uniforms;
+
+    for (const key of propertiesB.value.keys) {
+      u[key + 'B'].value = propertiesB.value[key];
+    }
+  }
+
+  function updateColorA(newColor) {
+    const shader = mixedMaterial.userData.shader;
+    if (!shader || !newColor) return;
+
+    colorA.value = newColor;
+
+    shader.uniforms.colorA.value.set(colorA);
+  }
+
+  function updateColorB(newColor) {
+    const shader = mixedMaterial.userData.shader;
+    if (!shader || !newColor) return;
+
+    colorB.value = newColor;
+
+    shader.uniforms.colorB.value.set(colorB);
+  }
+
+  function updateTileCount(newTileCount) {
+    const shader = mixedMaterial.userData.shader;
     if (!shader) return;
 
-    console.log('Updating Tiling');
     const newTiling = new THREE.Vector2(newTileCount, newTileCount);
     shader.uniforms.tiling.value = newTiling;
   }
 
-  function updateMask(material, newMask) {
-    const shader = material.userData.shader;
-    if (!shader) return;
-
-    console.log('Updating Mask');
-    shader.uniforms.mask.value = newMask;
-  }
-
   return {
     fabricsProperties,
-    getMaterial,
-    updateMaterial,
     getMixedMaterial,
-    updateMixedMaterial,
     updateTileCount,
-    updateMask,
+    updateProperiesA,
+    updateProperiesB,
+    updateColorA,
+    updateColorB,
   };
 }

@@ -5,9 +5,12 @@ import { usePatternGrid } from '@/composables/patternGrid';
 const { grid, gridSize, tileCount } = usePatternGrid();
 
 import { useClothMaterial } from './ClothMaterial';
-const { fabricsProperties, getMixedMaterial, updateTileCount } = useClothMaterial();
+const { getMixedMaterial, updateTileCount } = useClothMaterial();
 
-let textureCanvas, textureCtx, maskTexture, mesh;
+let textureCanvas = null;
+let textureCtx = null;
+let maskTexture = null;
+let mesh = null;
 
 const textureResolution = 1024;
 
@@ -23,35 +26,40 @@ function drawGrid() {
   }
 }
 
+function getMaskTexture() {
+  if (maskTexture) {
+    drawGrid();
+    maskTexture.needsUpdate = true;
+    return maskTexture;
+  }
+
+  textureCanvas = document.createElement('canvas');
+  textureCanvas.width = textureResolution;
+  textureCanvas.height = textureResolution;
+  textureCtx = textureCanvas.getContext('2d');
+
+  drawGrid();
+
+  maskTexture = new THREE.CanvasTexture(textureCanvas);
+  maskTexture.magFilter = THREE.NearestFilter;
+  maskTexture.minFilter = THREE.NearestFilter;
+  maskTexture.wrapS = THREE.RepeatWrapping;
+  maskTexture.wrapT = THREE.RepeatWrapping;
+
+  return maskTexture;
+}
+
 watch(tileCount, (newValue) => {
   if (!mesh || newValue <= 0) return;
 
-  updateTileCount(mesh.material, newValue);
+  updateTileCount(newValue);
 });
 
 export function useClothTexture() {
   function initTexture(scene) {
-    textureCanvas = document.createElement('canvas');
-    textureCanvas.width = textureResolution;
-    textureCanvas.height = textureResolution;
-    textureCtx = textureCanvas.getContext('2d');
+    const mask = getMaskTexture();
 
-    drawGrid();
-
-    maskTexture = new THREE.CanvasTexture(textureCanvas);
-    maskTexture.magFilter = THREE.NearestFilter;
-    maskTexture.minFilter = THREE.NearestFilter;
-    maskTexture.wrapS = THREE.RepeatWrapping;
-    maskTexture.wrapT = THREE.RepeatWrapping;
-
-    const shaderMaterial = getMixedMaterial(
-      fabricsProperties.linen,
-      fabricsProperties.cotton,
-      0xd00000,
-      0x0000d0,
-      maskTexture,
-      tileCount.value,
-    );
+    const shaderMaterial = getMixedMaterial(mask, tileCount.value);
 
     const geometry = new THREE.PlaneGeometry(1, 1);
     mesh = new THREE.Mesh(geometry, shaderMaterial);
@@ -63,7 +71,6 @@ export function useClothTexture() {
   function updateTexture() {
     drawGrid();
     maskTexture.needsUpdate = true;
-    // updateMask(mesh.material, maskTexture);
   }
 
   return { initTexture, updateTexture };
