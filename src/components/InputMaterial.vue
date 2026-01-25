@@ -1,16 +1,7 @@
 <script setup>
-import { ref } from 'vue';
 import { useClothMaterial } from '@/composables/ClothMaterial';
-const { fabricsProperties } = useClothMaterial();
-
-const colorA = ref('#d00000');
-const colorB = ref('#0000d0');
-
-const selectedFabricKeyA = ref('silk');
-// const selectedFabricA = computed(() => fabricsProperties[selectedFabricKeyA.value]);
-
-const selectedFabricKeyB = ref('cotton');
-// const selectedFabricB = computed(() => fabricsProperties[selectedFabricKeyA.value]);
+const { fabricsProperties, selectedFabricKeyA, selectedFabricKeyB, colorA, colorB } =
+  useClothMaterial();
 </script>
 
 <template>

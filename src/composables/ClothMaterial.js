@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
 import * as THREE from 'three';
 
 const fabricsProperties = {
@@ -32,10 +32,62 @@ const fabricsProperties = {
 
 let mixedMaterial = null;
 
-const propertiesA = ref(fabricsProperties.silk);
-const propertiesB = ref(fabricsProperties.cotton);
-const colorA = ref(0xd00000);
-const colorB = ref(0x0000d0);
+const selectedFabricKeyA = ref('silk');
+const selectedFabricKeyB = ref('cotton');
+
+const propertiesA = computed(() => fabricsProperties[selectedFabricKeyA.value]);
+const propertiesB = computed(() => fabricsProperties[selectedFabricKeyB.value]);
+
+const colorA = ref('#d00000');
+const colorB = ref('#0000d0');
+
+watch(propertiesA, (newProperties) => {
+  if (!mixedMaterial) return;
+  const shader = mixedMaterial.userData.shader;
+  if (!shader || !newProperties) return;
+
+  const u = shader.uniforms;
+
+  for (const [key, value] of Object.entries(newProperties)) {
+    u[key + 'A'].value = value;
+  }
+});
+
+watch(propertiesB, (newProperties) => {
+  if (!mixedMaterial) return;
+  const shader = mixedMaterial.userData.shader;
+  if (!shader || !newProperties) return;
+
+  const u = shader.uniforms;
+
+  for (const [key, value] of Object.entries(newProperties)) {
+    u[key + 'B'].value = value;
+  }
+});
+
+watch(colorA, (newColor) => {
+  if (!mixedMaterial) return;
+  const shader = mixedMaterial.userData.shader;
+  if (!shader || !newColor) return;
+
+  shader.uniforms.colorA.value.set(newColor);
+});
+
+watch(colorB, (newColor) => {
+  if (!mixedMaterial) return;
+  const shader = mixedMaterial.userData.shader;
+  if (!shader || !newColor) return;
+
+  shader.uniforms.colorB.value.set(newColor);
+});
+
+function updateTileCount(newTileCount) {
+  const shader = mixedMaterial.userData.shader;
+  if (!shader) return;
+
+  const newTiling = new THREE.Vector2(newTileCount, newTileCount);
+  shader.uniforms.tiling.value = newTiling;
+}
 
 export function useClothMaterial() {
   // function getMaterial(properties, color) {
@@ -175,65 +227,13 @@ export function useClothMaterial() {
     return mixedMaterial;
   }
 
-  function updateProperiesA(newProperties) {
-    const shader = mixedMaterial.userData.shader;
-    if (!shader || !newProperties) return;
-
-    propertiesA.value = newProperties;
-
-    const u = shader.uniforms;
-
-    for (const key of propertiesA.value.keys) {
-      u[key + 'A'].value = propertiesA.value[key];
-    }
-  }
-
-  function updateProperiesB(newProperties) {
-    const shader = mixedMaterial.userData.shader;
-    if (!shader || !newProperties) return;
-
-    propertiesB.value = newProperties;
-
-    const u = shader.uniforms;
-
-    for (const key of propertiesB.value.keys) {
-      u[key + 'B'].value = propertiesB.value[key];
-    }
-  }
-
-  function updateColorA(newColor) {
-    const shader = mixedMaterial.userData.shader;
-    if (!shader || !newColor) return;
-
-    colorA.value = newColor;
-
-    shader.uniforms.colorA.value.set(colorA);
-  }
-
-  function updateColorB(newColor) {
-    const shader = mixedMaterial.userData.shader;
-    if (!shader || !newColor) return;
-
-    colorB.value = newColor;
-
-    shader.uniforms.colorB.value.set(colorB);
-  }
-
-  function updateTileCount(newTileCount) {
-    const shader = mixedMaterial.userData.shader;
-    if (!shader) return;
-
-    const newTiling = new THREE.Vector2(newTileCount, newTileCount);
-    shader.uniforms.tiling.value = newTiling;
-  }
-
   return {
     fabricsProperties,
     getMixedMaterial,
     updateTileCount,
-    updateProperiesA,
-    updateProperiesB,
-    updateColorA,
-    updateColorB,
+    selectedFabricKeyA,
+    selectedFabricKeyB,
+    colorA,
+    colorB,
   };
 }
