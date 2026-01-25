@@ -1,9 +1,8 @@
 <script setup>
-// import MeshThreeScene from './components/MeshThreeScene.vue';
-// import TextureThreeScene from './components/TextureThreeScene.vue';
 import ThreeScene from './components/ThreeScene.vue';
 import ToolsBar from './components/ToolsBar.vue';
 import InputGrid from './components/InputGrid.vue';
+import InputMaterial from './components/InputMaterial.vue';
 import { usePatternGrid } from './composables/patternGrid';
 
 import { ref } from 'vue';
@@ -12,7 +11,11 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'vue-resizable-panels';
 const { fillGrid } = usePatternGrid();
 fillGrid(false); // grid initialisation
 
+const leftSize = ref(20);
+const rightSize = ref(30);
+
 const displayGrid = ref(true);
+const displayMaterial = ref(false);
 const meshView = ref(true);
 const groupKey = ref(0);
 
@@ -23,6 +26,10 @@ function toggleGrid() {
 function toggleView() {
   meshView.value = !meshView.value;
 }
+
+function toggleMaterial() {
+  displayMaterial.value = !displayMaterial.value;
+}
 </script>
 
 <template>
@@ -32,20 +39,31 @@ function toggleView() {
       :displayGrid="displayGrid"
       :onToggleView="toggleView"
       :currentView="meshView"
+      :onToggleMat="toggleMaterial"
+      :displayMat="displayMaterial"
     />
     <div class="content">
       <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
-        <Panel :defaultSize="displayGrid ? 70 : 100" :minSize="50">
+        <Panel
+          v-show="displayMaterial"
+          :size="leftSize"
+          :minSize="10"
+          :maxSize="45"
+          @resize="leftSize = $event"
+        >
+          <InputMaterial />
+        </Panel>
+        <PanelResizeHandle class="resize-handle" />
+        <Panel :size="100">
           <ThreeScene :meshView="meshView" />
-          <!-- <MeshThreeScene v-if="meshView" />
-          <TextureThreeScene v-else /> -->
         </Panel>
         <PanelResizeHandle class="resize-handle" />
         <Panel
           v-show="displayGrid"
-          :defaultSize="displayGrid ? 30 : 0"
-          :minSize="displayGrid ? 10 : 0"
-          :maxSize="displayGrid ? 50 : 0"
+          :size="rightSize"
+          :minSize="10"
+          :maxSize="45"
+          @resize="rightSize = $event"
         >
           <InputGrid />
         </Panel>

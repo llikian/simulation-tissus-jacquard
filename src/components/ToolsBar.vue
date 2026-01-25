@@ -1,9 +1,19 @@
 <script setup>
-defineProps(['onToggleGrid', 'displayGrid', 'onToggleView', 'currentView']);
+defineProps([
+  'onToggleGrid',
+  'displayGrid',
+  'onToggleView',
+  'currentView',
+  'onToggleMat',
+  'displayMat',
+]);
 </script>
 
 <template>
   <nav>
+    <button @click="onToggleMat" :class="{ active: displayMat }" class="toggle-btn">
+      Toggle Material
+    </button>
     <button @click="onToggleView" :class="{ active: currentView }" class="toggle-btn">
       Toggle View
     </button>
@@ -16,7 +26,7 @@ defineProps(['onToggleGrid', 'displayGrid', 'onToggleView', 'currentView']);
 <style scoped>
 nav {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin: 0 1rem;
 }
 
