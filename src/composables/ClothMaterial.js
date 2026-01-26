@@ -112,7 +112,7 @@ export function useClothMaterial() {
   function getMaterialA() {
     if (!materialA) {
       materialA = new THREE.MeshPhysicalMaterial({
-        map: colorA.value,
+        color: new THREE.Color(colorA.value),
         roughness: propertiesA.value.roughness,
         metalness: propertiesA.value.metalness,
         sheen: propertiesA.value.sheen,
@@ -128,7 +128,7 @@ export function useClothMaterial() {
   function getMaterialB() {
     if (!materialB) {
       materialB = new THREE.MeshPhysicalMaterial({
-        map: colorB.value,
+        color: new THREE.Color(colorB.value),
         roughness: propertiesB.value.roughness,
         metalness: propertiesB.value.metalness,
         sheen: propertiesB.value.sheen,

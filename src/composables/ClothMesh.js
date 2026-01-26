@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { usePatternGrid } from '@/composables/patternGrid';
-
+import { useClothMaterial } from './ClothMaterial';
 const { grid, gridSize } = usePatternGrid();
+const { getMaterialA, getMaterialB } = useClothMaterial();
 
 let curves, curveInstances, lineInstances; // Curves are the rows (they go up or down the lines), the lines are straight
-const curveMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
-const lineMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
+const curveMaterial = getMaterialA();
+const lineMaterial = getMaterialB();
 const threadDistance = 0.1;
 
 function create_tube(curve) {
