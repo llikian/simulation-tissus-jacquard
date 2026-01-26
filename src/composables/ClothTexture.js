@@ -5,7 +5,7 @@ import { usePatternGrid } from '@/composables/patternGrid';
 const { grid, gridSize, tileCount } = usePatternGrid();
 
 import { useClothMaterial } from './ClothMaterial';
-const { getMixedMaterial, updateTileCount } = useClothMaterial();
+const { getMixedMaterial, updateTileCount, updateResolution } = useClothMaterial();
 
 let textureCanvas = null;
 let textureCtx = null;
@@ -59,7 +59,7 @@ export function useClothTexture() {
   function initTexture(scene) {
     const mask = getMaskTexture();
 
-    const shaderMaterial = getMixedMaterial(mask, tileCount.value);
+    const shaderMaterial = getMixedMaterial(mask, gridSize.value, tileCount.value);
 
     const geometry = new THREE.PlaneGeometry(1, 1);
     mesh = new THREE.Mesh(geometry, shaderMaterial);
@@ -70,6 +70,7 @@ export function useClothTexture() {
 
   function updateTexture() {
     drawGrid();
+    updateResolution(gridSize.value);
     maskTexture.needsUpdate = true;
   }
 

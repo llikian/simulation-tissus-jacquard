@@ -81,14 +81,6 @@ watch(colorB, (newColor) => {
   shader.uniforms.colorB.value.set(newColor);
 });
 
-function updateTileCount(newTileCount) {
-  const shader = mixedMaterial.userData.shader;
-  if (!shader) return;
-
-  const newTiling = new THREE.Vector2(newTileCount, newTileCount);
-  shader.uniforms.tiling.value = newTiling;
-}
-
 export function useClothMaterial() {
   // function getMaterial(properties, color) {
   //   return new THREE.MeshPhysicalMaterial({
@@ -112,7 +104,23 @@ export function useClothMaterial() {
   //   material.specularIntensity = properties.specularIntensity;
   // }
 
-  function getMixedMaterial(mask, tileCount) {
+  function updateTileCount(newTileCount) {
+    const shader = mixedMaterial.userData.shader;
+    if (!shader) return;
+
+    const newTiling = new THREE.Vector2(newTileCount, newTileCount);
+    shader.uniforms.tiling.value = newTiling;
+  }
+
+  function updateResolution(newResolution) {
+    const shader = mixedMaterial.userData.shader;
+    if (!shader) return;
+
+    shader.uniforms.resolution.value = newResolution;
+  }
+
+  function getMixedMaterial(mask, resolution, tileCount) {
+    console.log('Initilalizing with tilecount = ' + tileCount);
     const tiling = new THREE.Vector2(tileCount, tileCount);
 
     if (mixedMaterial) {
@@ -135,6 +143,7 @@ export function useClothMaterial() {
       mat.userData.shader = shader;
 
       shader.uniforms.mask = { value: mask };
+      shader.uniforms.resolution = { value: resolution };
       shader.uniforms.tiling = { value: tiling };
 
       shader.uniforms.colorA = { value: new THREE.Color(colorA.value) };
@@ -151,6 +160,7 @@ export function useClothMaterial() {
           `
           #include <common>
           uniform sampler2D mask;
+          uniform float resolution;
           uniform vec2 tiling;
 
           uniform vec3 colorA;
@@ -168,57 +178,84 @@ export function useClothMaterial() {
           uniform float specularIntensityA;
           uniform float specularIntensityB;
 
-          float m;
+          float stripe(vec2 p, float period, float edge)
+          {
+              float x = mod(p.x, period);
+              float d = abs(x - period * 0.5);
+              return 1.0 - smoothstep(0.0, edge, d);
+          }
         `,
         )
         .replace(
           '#include <map_fragment>',
           `
-        #include <map_fragment>
-        m = texture2D(mask, fract(vUv * tiling)).r;
+          #include <map_fragment>
+          vec2 uvMask = fract(vUv * tiling);
+          vec2 cell = uvMask * resolution;
+
+          float period = 2.0;
+          float edge = 0.3;
+
+          float w1x = stripe(cell.yx, period, edge);
+          float w2x = stripe(cell.yx + vec2(period * 0.5, 0.0), period, edge);
+          float waveX = max(w1x, w2x);
+
+          float w1y = stripe(cell, period, edge);
+          float w2y = stripe(cell + vec2(period * 0.5, 0.0), period, edge);
+          float waveY = max(w1y, w2y);
+
+          float m = texture2D(mask, uvMask).r;
+          float waveMask = 1.0 - (waveX + m * (waveY - waveX));
         `,
         )
         .replace(
           '#include <color_fragment>',
           `
-        #include <color_fragment>
-        diffuseColor.rgb = mix(colorA, colorB, m);
+          #include <color_fragment>
+          vec3 baseColor = mix(colorA, colorB, m);
+          diffuseColor.rgb = baseColor * waveMask;
         `,
         )
         .replace(
           '#include <roughnessmap_fragment>',
           `
-        #include <roughnessmap_fragment>
-        roughnessFactor = mix(roughnessA, roughnessB, m);
+          #include <roughnessmap_fragment>
+          float baseRoughness = mix(roughnessA, roughnessB, m);
+          roughnessFactor = baseRoughness * waveMask;
         `,
         )
         .replace(
           '#include <metalnessmap_fragment>',
           `
-        #include <metalnessmap_fragment>
-        metalnessFactor = mix(metalnessA, metalnessB, m);
+          #include <metalnessmap_fragment>
+          float baseMetalness = mix(metalnessA, metalnessB, m);
+          metalnessFactor = baseMetalness * waveMask;
         `,
         )
         .replace(
           '#include <sheen_fragment>',
           `
-        #include <sheen_fragment>
-        sheen = mix(sheenA, sheenB, m);
-        sheenRoughness = mix(sheenRoughnessA, sheenRoughnessB, m);
+          #include <sheen_fragment>
+          float baseSheen = mix(sheenA, sheenB, m);
+          float baseSheenRoughness = mix(sheenRoughnessA, sheenRoughnessB, m);
+          sheen = baseSheen * waveMask;
+          sheenRoughness = baseSheenRoughness * waveMask;
         `,
         )
         .replace(
           '#include <anisotropy_fragment>',
           `
-        #include <anisotropy_fragment>
-        anisotropy = mix(anisotropyA, anisotropyB, m);
+          #include <anisotropy_fragment>
+          float baseAnisotropy = mix(anisotropyA, anisotropyB, m);
+          anisotropy = baseAnisotropy * waveMask;
         `,
         )
         .replace(
           '#include <specular_fragment>',
           `
-        #include <specular_fragment>
-        specularIntensity = mix(specularIntensityA, specularIntensityB, m);
+          #include <specular_fragment>
+          float baseSpecular = mix(specularIntensityA, specularIntensityB, m);
+          specularIntensity = baseSpecular * waveMask;
         `,
         );
     };
@@ -231,6 +268,7 @@ export function useClothMaterial() {
     fabricsProperties,
     getMixedMaterial,
     updateTileCount,
+    updateResolution,
     selectedFabricKeyA,
     selectedFabricKeyB,
     colorA,
