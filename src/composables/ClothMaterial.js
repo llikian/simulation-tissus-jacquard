@@ -30,7 +30,9 @@ const fabricsProperties = {
   },
 };
 
-let mixedMaterial = null;
+let weaveMaterial = null;
+let materialA = null;
+let materialB = null;
 
 const selectedFabricKeyA = ref('silk');
 const selectedFabricKeyB = ref('cotton');
@@ -41,9 +43,24 @@ const propertiesB = computed(() => fabricsProperties[selectedFabricKeyB.value]);
 const colorA = ref('#d00000');
 const colorB = ref('#0000d0');
 
+function updatePhysicalMaterial(mat, props) {
+  if (!mat) return;
+
+  mat.roughness = props.roughness;
+  mat.metalness = props.metalness;
+  mat.sheen = props.sheen;
+  mat.sheenRoughness = props.sheenRoughness;
+  mat.anisotropy = props.anisotropy;
+  mat.specularIntensity = props.specularIntensity;
+
+  mat.needsUpdate = true;
+}
+
 watch(propertiesA, (newProperties) => {
-  if (!mixedMaterial) return;
-  const shader = mixedMaterial.userData.shader;
+  updatePhysicalMaterial(materialA, newProperties);
+
+  if (!weaveMaterial) return;
+  const shader = weaveMaterial.userData.shader;
   if (!shader || !newProperties) return;
 
   const u = shader.uniforms;
@@ -54,8 +71,10 @@ watch(propertiesA, (newProperties) => {
 });
 
 watch(propertiesB, (newProperties) => {
-  if (!mixedMaterial) return;
-  const shader = mixedMaterial.userData.shader;
+  updatePhysicalMaterial(materialB, newProperties);
+
+  if (!weaveMaterial) return;
+  const shader = weaveMaterial.userData.shader;
   if (!shader || !newProperties) return;
 
   const u = shader.uniforms;
@@ -66,46 +85,64 @@ watch(propertiesB, (newProperties) => {
 });
 
 watch(colorA, (newColor) => {
-  if (!mixedMaterial) return;
-  const shader = mixedMaterial.userData.shader;
+  if (materialA) {
+    materialA.color.set(newColor);
+  }
+
+  if (!weaveMaterial) return;
+  const shader = weaveMaterial.userData.shader;
   if (!shader || !newColor) return;
 
   shader.uniforms.colorA.value.set(newColor);
 });
 
 watch(colorB, (newColor) => {
-  if (!mixedMaterial) return;
-  const shader = mixedMaterial.userData.shader;
+  if (materialB) {
+    materialB.color.set(newColor);
+  }
+
+  if (!weaveMaterial) return;
+  const shader = weaveMaterial.userData.shader;
   if (!shader || !newColor) return;
 
   shader.uniforms.colorB.value.set(newColor);
 });
 
 export function useClothMaterial() {
-  // function getMaterial(properties, color) {
-  //   return new THREE.MeshPhysicalMaterial({
-  //     map: color,
-  //     roughness: properties.roughness,
-  //     metalness: properties.metalness,
-  //     sheen: properties.sheen,
-  //     sheenRoughness: properties.sheenRoughness,
-  //     anisotropy: properties.anisotropy,
-  //     specularIntensity: properties.specularIntensity,
-  //   });
-  // }
+  function getMaterialA() {
+    if (!materialA) {
+      materialA = new THREE.MeshPhysicalMaterial({
+        map: colorA.value,
+        roughness: propertiesA.value.roughness,
+        metalness: propertiesA.value.metalness,
+        sheen: propertiesA.value.sheen,
+        sheenRoughness: propertiesA.value.sheenRoughness,
+        anisotropy: propertiesA.value.anisotropy,
+        specularIntensity: propertiesA.value.specularIntensity,
+      });
+    }
 
-  // function updateMaterial(material, properties, color) {
-  //   material.map = color;
-  //   material.roughness = properties.roughness;
-  //   material.metalness = properties.metalness;
-  //   material.sheen = properties.sheen;
-  //   material.sheenRoughness = properties.sheenRoughness;
-  //   material.anisotropy = properties.anisotropy;
-  //   material.specularIntensity = properties.specularIntensity;
-  // }
+    return materialA;
+  }
+
+  function getMaterialB() {
+    if (!materialB) {
+      materialB = new THREE.MeshPhysicalMaterial({
+        map: colorB.value,
+        roughness: propertiesB.value.roughness,
+        metalness: propertiesB.value.metalness,
+        sheen: propertiesB.value.sheen,
+        sheenRoughness: propertiesB.value.sheenRoughness,
+        anisotropy: propertiesB.value.anisotropy,
+        specularIntensity: propertiesB.value.specularIntensity,
+      });
+    }
+
+    return materialB;
+  }
 
   function updateTileCount(newTileCount) {
-    const shader = mixedMaterial.userData.shader;
+    const shader = weaveMaterial.userData.shader;
     if (!shader) return;
 
     const newTiling = new THREE.Vector2(newTileCount, newTileCount);
@@ -113,23 +150,22 @@ export function useClothMaterial() {
   }
 
   function updateResolution(newResolution) {
-    const shader = mixedMaterial.userData.shader;
+    const shader = weaveMaterial.userData.shader;
     if (!shader) return;
 
     shader.uniforms.resolution.value = newResolution;
   }
 
-  function getMixedMaterial(mask, resolution, tileCount) {
-    console.log('Initilalizing with tilecount = ' + tileCount);
+  function getWeaveMaterial(mask, resolution, tileCount) {
     const tiling = new THREE.Vector2(tileCount, tileCount);
 
-    if (mixedMaterial) {
-      const shader = mixedMaterial.userData.shader;
+    if (weaveMaterial) {
+      const shader = weaveMaterial.userData.shader;
       if (shader) {
         shader.uniforms.mask.value = mask;
         shader.uniforms.tiling.value = tiling;
       }
-      return mixedMaterial;
+      return weaveMaterial;
     }
 
     const mat = new THREE.MeshPhysicalMaterial({
@@ -194,7 +230,7 @@ export function useClothMaterial() {
           vec2 cell = uvMask * resolution;
 
           float period = 2.0;
-          float edge = 0.3;
+          float edge = 0.5;
 
           float w1x = stripe(cell.yx, period, edge);
           float w2x = stripe(cell.yx + vec2(period * 0.5, 0.0), period, edge);
@@ -209,6 +245,22 @@ export function useClothMaterial() {
         `,
         )
         .replace(
+          '#include <normal_fragment_maps>',
+          `
+          #include <normal_fragment_maps>
+
+          float heightScale = 2.0;
+          float h = (waveMask - 0.5) * -heightScale;
+
+          vec3 localNormal = normalize(vec3(-dFdx(h), -dFdy(h), 1.0));
+
+          vec3 t = normalize(dFdx(vViewPosition));
+          vec3 b = normalize(dFdy(vViewPosition));
+          mat3 TBN = mat3(t, b, normalize(normal));
+          normal = normalize(TBN * localNormal);
+          `,
+        )
+        .replace(
           '#include <color_fragment>',
           `
           #include <color_fragment>
@@ -220,53 +272,49 @@ export function useClothMaterial() {
           '#include <roughnessmap_fragment>',
           `
           #include <roughnessmap_fragment>
-          float baseRoughness = mix(roughnessA, roughnessB, m);
-          roughnessFactor = baseRoughness * waveMask;
+          roughnessFactor = mix(roughnessA, roughnessB, m);
         `,
         )
         .replace(
           '#include <metalnessmap_fragment>',
           `
           #include <metalnessmap_fragment>
-          float baseMetalness = mix(metalnessA, metalnessB, m);
-          metalnessFactor = baseMetalness * waveMask;
+          metalnessFactor = mix(metalnessA, metalnessB, m);
         `,
         )
         .replace(
           '#include <sheen_fragment>',
           `
           #include <sheen_fragment>
-          float baseSheen = mix(sheenA, sheenB, m);
-          float baseSheenRoughness = mix(sheenRoughnessA, sheenRoughnessB, m);
-          sheen = baseSheen * waveMask;
-          sheenRoughness = baseSheenRoughness * waveMask;
+          sheen = mix(sheenA, sheenB, m);
+          sheenRoughness = mix(sheenRoughnessA, sheenRoughnessB, m);
         `,
         )
         .replace(
           '#include <anisotropy_fragment>',
           `
           #include <anisotropy_fragment>
-          float baseAnisotropy = mix(anisotropyA, anisotropyB, m);
-          anisotropy = baseAnisotropy * waveMask;
+          anisotropy = mix(anisotropyA, anisotropyB, m);
         `,
         )
         .replace(
           '#include <specular_fragment>',
           `
           #include <specular_fragment>
-          float baseSpecular = mix(specularIntensityA, specularIntensityB, m);
-          specularIntensity = baseSpecular * waveMask;
+          specularIntensity = mix(specularIntensityA, specularIntensityB, m);
         `,
         );
     };
 
-    mixedMaterial = mat;
-    return mixedMaterial;
+    weaveMaterial = mat;
+    return weaveMaterial;
   }
 
   return {
     fabricsProperties,
-    getMixedMaterial,
+    getMaterialA,
+    getMaterialB,
+    getWeaveMaterial,
     updateTileCount,
     updateResolution,
     selectedFabricKeyA,
