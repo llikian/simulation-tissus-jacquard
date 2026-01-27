@@ -3,8 +3,8 @@ import * as THREE from 'three';
 
 const fabricsProperties = {
   silk: {
-    roughness: 0.15,
-    metalness: 0.0,
+    roughness: 0.4,
+    metalness: 0.4,
     sheen: 1.0,
     sheenRoughness: 0.2,
     anisotropy: 0.9,
@@ -21,7 +21,7 @@ const fabricsProperties = {
   },
 
   linen: {
-    roughness: 0.85,
+    roughness: 0.9,
     metalness: 0.0,
     sheen: 0.4,
     sheenRoughness: 1.0,
