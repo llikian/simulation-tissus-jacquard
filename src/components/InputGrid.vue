@@ -48,13 +48,8 @@ watch([patternWidth, patternHeight], resizePattern);
 <template>
   <div class="grid-panel">
     <div class="grid" :style="{ '--grid-size': gridSize }">
-      <div
-        v-for="(cell, index) in flatGrid"
-        :key="index"
-        class="cell"
-        :class="{ active: cell.value }"
-        @click="toggleCell(cell.i, cell.j)"
-      ></div>
+      <div v-for="(cell, index) in flatGrid" :key="index" class="cell" :class="{ active: cell.value }"
+        @click="toggleCell(cell.i, cell.j)"></div>
     </div>
     <div class="grid-settings">
       <label>
@@ -72,24 +67,17 @@ watch([patternWidth, patternHeight], resizePattern);
       </div>
       <div class="pattern-maker">
         <div class="pattern-size">
-          <label
-            >Width
+          <label>Width
             <input type="number" v-model="patternWidth" min="1" />
           </label>
-          <label
-            >Height
+          <label>Height
             <input type="number" v-model="patternHeight" min="1" />
           </label>
           <button @click="fillPattern(pattern)">Pattern</button>
         </div>
         <div class="pattern" :style="{ '--pattern-width': patternWidth }">
-          <div
-            v-for="(pattern, index) in flatPattern"
-            :key="index"
-            class="cell"
-            :class="{ active: pattern.value }"
-            @click="togglePatternCell(pattern.i, pattern.j)"
-          ></div>
+          <div v-for="(pattern, index) in flatPattern" :key="index" class="cell" :class="{ active: pattern.value }"
+            @click="togglePatternCell(pattern.i, pattern.j)"></div>
         </div>
       </div>
     </div>
@@ -100,7 +88,8 @@ watch([patternWidth, patternHeight], resizePattern);
 .grid-panel {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .grid {

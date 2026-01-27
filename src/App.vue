@@ -34,23 +34,11 @@ function toggleMaterial() {
 
 <template>
   <div class="page">
-    <ToolsBar
-      :onToggleGrid="toggleGrid"
-      :displayGrid="displayGrid"
-      :onToggleView="toggleView"
-      :currentView="meshView"
-      :onToggleMat="toggleMaterial"
-      :displayMat="displayMaterial"
-    />
+    <ToolsBar :onToggleGrid="toggleGrid" :displayGrid="displayGrid" :onToggleView="toggleView" :currentView="meshView"
+      :onToggleMat="toggleMaterial" :displayMat="displayMaterial" />
     <div class="content">
       <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
-        <Panel
-          v-show="displayMaterial"
-          :size="leftSize"
-          :minSize="10"
-          :maxSize="45"
-          @resize="leftSize = $event"
-        >
+        <Panel v-show="displayMaterial" :size="leftSize" :minSize="10" :maxSize="45" @resize="leftSize = $event">
           <InputMaterial />
         </Panel>
         <PanelResizeHandle class="resize-handle" />
@@ -58,13 +46,8 @@ function toggleMaterial() {
           <ThreeScene :meshView="meshView" />
         </Panel>
         <PanelResizeHandle class="resize-handle" />
-        <Panel
-          v-show="displayGrid"
-          :size="rightSize"
-          :minSize="10"
-          :maxSize="45"
-          @resize="rightSize = $event"
-        >
+        <Panel v-show="displayGrid" :size="rightSize" :defaultSize="20" :minSize="10" :maxSize="45"
+          @resize="rightSize = $event">
           <InputGrid />
         </Panel>
       </PanelGroup>
