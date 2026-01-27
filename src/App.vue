@@ -11,8 +11,8 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'vue-resizable-panels';
 const { fillGrid } = usePatternGrid();
 fillGrid(false); // grid initialisation
 
-const leftSize = ref(20);
-const rightSize = ref(30);
+const leftSize = ref(10);
+const rightSize = ref(20);
 
 const displayGrid = ref(true);
 const displayMaterial = ref(false);
@@ -38,7 +38,7 @@ function toggleMaterial() {
       :onToggleMat="toggleMaterial" :displayMat="displayMaterial" />
     <div class="content">
       <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
-        <Panel v-show="displayMaterial" :size="leftSize" :minSize="10" :maxSize="45" @resize="leftSize = $event">
+        <Panel v-show="displayMaterial" :size="leftSize" :defaultSize="15" :minSize="10" :maxSize="45" @resize="leftSize = $event">
           <InputMaterial />
         </Panel>
         <PanelResizeHandle class="resize-handle" />

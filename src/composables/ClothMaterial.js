@@ -21,13 +21,22 @@ const fabricsProperties = {
   },
 
   linen: {
-    roughness: 0.9,
+    roughness: 0.8,
     metalness: 0.0,
     sheen: 0.4,
     sheenRoughness: 1.0,
     anisotropy: 0.1,
     specularIntensity: 0.2,
   },
+
+  wool: {
+    roughness: 0.9,
+    metalness: 0.0,
+    sheen: 0.2,
+    sheenRoughness: 1.0,
+    anisotropy: 0.1,
+    specularIntensity: 0.2,
+  }
 };
 
 let weaveMaterial = null;
