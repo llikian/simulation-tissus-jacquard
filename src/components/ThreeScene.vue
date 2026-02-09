@@ -120,7 +120,7 @@ onMounted(() => {
 
   emitter.on('gridSizeChanged', () => {
     if (meshView) {
-      init_curves();
+      init_curves(scene);
     } else {
       updateTexture();
     }
