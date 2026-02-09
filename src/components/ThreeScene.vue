@@ -9,7 +9,7 @@ import { useClothTexture } from '@/composables/ClothTexture';
 const { meshView } = defineProps(['meshView']);
 
 const { emitter } = usePatternGrid();
-const { init_curves, update_curve, update_curves } = useClothMesh();
+const { init_curves, update_row_curve, update_column_curve, update_curves } = useClothMesh();
 const { initTexture, updateTexture } = useClothTexture();
 
 const container = ref(null);
@@ -104,7 +104,8 @@ onMounted(() => {
   // Events when grid changed
   emitter.on('cellChanged', (cell) => {
     if (meshView) {
-      update_curve(cell.i);
+      update_row_curve(cell.i);
+      update_column_curve(cell.j);
     } else {
       updateTexture();
     }
