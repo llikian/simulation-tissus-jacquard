@@ -74,5 +74,9 @@ export function useClothTexture() {
     maskTexture.needsUpdate = true;
   }
 
-  return { initTexture, updateTexture };
+  function getTexture() {
+    return maskTexture;
+  }
+
+  return { initTexture, updateTexture, getTexture };
 }
