@@ -5,12 +5,14 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { usePatternGrid } from '@/composables/patternGrid';
 import { useClothMesh } from '@/composables/ClothMesh';
 import { useClothTexture } from '@/composables/ClothTexture';
+import { useFinalView } from '@/composables/FinalView';
 
 const { meshView } = defineProps(['meshView']);
 
 const { emitter } = usePatternGrid();
 const { init_curves, update_row_curve, update_column_curve, update_curves } = useClothMesh();
-const { initTexture, updateTexture } = useClothTexture();
+const { initTexture, updateTexture, getTexture } = useClothTexture();
+const final = useFinalView()
 
 const container = ref(null);
 
@@ -69,19 +71,22 @@ function clearMeshesFromScene() {
 function refreshSceneContent() {
   clearMeshesFromScene();
 
-  if (meshView) {
+  if (meshView == 0) {
     init_curves(scene);
-
-    return;
+  } else if (meshView == 1) {
+    initTexture(scene);
+  } else if (meshView == 2) {
+    final.init(scene, renderer);
   }
-
-  initTexture(scene);
 }
 
 function animate() {
   const delta = clock.getDelta();
   controls.update(delta);
   renderer.render(scene, camera);
+  if (meshView == 2) {
+    final.update();
+  }
 }
 
 function handleResize() {
@@ -103,27 +108,33 @@ onMounted(() => {
 
   // Events when grid changed
   emitter.on('cellChanged', (cell) => {
-    if (meshView) {
+    if (meshView == 0) {
       update_row_curve(cell.i);
       update_column_curve(cell.j);
-    } else {
+    } else if (meshView == 1) {
       updateTexture();
+    } else {
+      final.update();
     }
   });
 
   emitter.on('gridChanged', () => {
-    if (meshView) {
+    if (meshView == 0) {
       update_curves();
-    } else {
+    } else if (meshView == 1) {
       updateTexture();
+    } else {
+      final.update();
     }
   });
 
   emitter.on('gridSizeChanged', () => {
-    if (meshView) {
+    if (meshView == 0) {
       init_curves(scene);
-    } else {
+    } else if (meshView == 1) {
       updateTexture();
+    } else {
+      final.update();
     }
   });
 });

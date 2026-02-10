@@ -16,7 +16,7 @@ const rightSize = ref(20);
 
 const displayGrid = ref(true);
 const displayMaterial = ref(false);
-const meshView = ref(true);
+const meshView = ref(0); //0 = Vue 3D, 1 = Vue 2D, 2 = Vue Tissu
 const groupKey = ref(0);
 
 function toggleGrid() {
@@ -24,7 +24,8 @@ function toggleGrid() {
 }
 
 function toggleView() {
-  meshView.value = !meshView.value;
+  console.log(meshView.value);
+  meshView.value = (meshView.value + 1) % 3;
 }
 
 function toggleMaterial() {
