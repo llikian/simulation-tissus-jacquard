@@ -230,7 +230,7 @@ export class Cloth {
         // =====================================================
         // ✅ Matériau
         // =====================================================
-        var visMaterial = new THREE.MeshPhongMaterial({
+        this.material = new THREE.MeshPhongMaterial({
             map: this.texture,
             side: THREE.DoubleSide
         });
@@ -239,7 +239,7 @@ export class Cloth {
         // =====================================================
         // ✅ Mesh
         // =====================================================
-        this.triMesh = new THREE.Mesh(geometry, visMaterial);
+        this.triMesh = new THREE.Mesh(geometry, this.material);
         this.triMesh.castShadow = true;
         this.triMesh.userData = this;
         this.triMesh.layers.enable(1);
@@ -437,5 +437,5 @@ export class Cloth {
             vecCopy(this.vel,this.grabId, v,0);
         }
         this.grabId = -1;
-    }								
+    }
 }

@@ -76,7 +76,7 @@ function refreshSceneContent() {
   } else if (meshView == 1) {
     initTexture(scene);
   } else if (meshView == 2) {
-    final.init(scene, renderer);
+    final.init(scene, renderer, getTexture());
   }
 }
 
