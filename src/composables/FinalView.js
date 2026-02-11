@@ -1,6 +1,12 @@
 import * as THREE from "three";
 import { Cloth } from "/src/physics/Cloth";
-import { meshes } from "@/physics/meshes"; // ton mesh HTML extrait
+import { meshes } from "@/physics/meshes";
+import { usePatternGrid } from '@/composables/patternGrid';
+
+import { useClothMaterial } from './ClothMaterial';
+
+const { gridSize, tileCount} =usePatternGrid();
+const { getWeaveMaterial, updateTileCount, updateResolution } = useClothMaterial();
 
 export function useFinalView() {
   let scene, camera, renderer;
@@ -20,14 +26,6 @@ export function useFinalView() {
     camera.position.set(0, 1, 2);
     camera.lookAt(0, 0.8, 0);
 
-    // lumière
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(3, 5, 4);
-    scene.add(light);
-
-    // ⭐ TON VRAI TISSU (pas PlaneGeometry)
     cloth = new Cloth(meshes[0], scene, _texture);
 
     onResize();
@@ -60,5 +58,5 @@ export function useFinalView() {
     renderer.setSize(w, h);
   }
 
-  return { init, update };
+  return { init, update, updateTileCount, updateResolution };
 }

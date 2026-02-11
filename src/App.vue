@@ -24,23 +24,18 @@ function toggleGrid() {
 }
 
 function toggleView() {
-  console.log(meshView.value);
   meshView.value = (meshView.value + 1) % 3;
 }
 
 function toggleMaterial() {
   displayMaterial.value = !displayMaterial.value;
 }
-
-function toggleFinalResult() {
-  window.open('/src/final.html', '_blank');
-}
 </script>
 
 <template>
   <div class="page">
     <ToolsBar :onToggleGrid="toggleGrid" :displayGrid="displayGrid" :onToggleView="toggleView" :currentView="meshView"
-      :onToggleMat="toggleMaterial" :displayMat="displayMaterial" :onToggleFinalResult="toggleFinalResult"/>
+      :onToggleMat="toggleMaterial" :displayMat="displayMaterial"/>
     <div class="content">
       <PanelGroup :key="groupKey" class="panel-group" direction="horizontal">
         <Panel v-show="displayMaterial" :size="leftSize" :defaultSize="15" :minSize="10" :maxSize="45" @resize="leftSize = $event">

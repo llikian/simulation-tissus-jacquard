@@ -4,7 +4,6 @@ defineProps([
   'displayGrid',
   'onToggleView',
   'currentView',
-  'onToggleFinalResult',
   'onToggleMat',
   'displayMat',
 ]);
@@ -17,9 +16,6 @@ defineProps([
     </button>
     <button @click="onToggleView" :class="{ active: currentView }" class="toggle-btn">
       Toggle View
-    </button>
-    <button @click="onToggleFinalResult" :class="{}" class="toggle-btn">
-      Toggle Final Result
     </button>
     <button @click="onToggleGrid" :class="{ active: displayGrid }" class="toggle-btn">
       Toggle Grid

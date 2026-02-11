@@ -1,5 +1,12 @@
 import * as THREE from "three";
 
+import { usePatternGrid } from '@/composables/patternGrid';
+
+import { useClothMaterial } from '@/composables/ClothMaterial';
+
+const { gridSize, tileCount} =usePatternGrid();
+const { getWeaveMaterial, updateTileCount, updateResolution } = useClothMaterial();
+
 // ===============================
 // Math helpers (OBLIGATOIRE)
 // ===============================
@@ -218,12 +225,10 @@ export class Cloth {
         // ✅ Texture
         // =====================================================
         this.texture = _texture;
-
-        console.log(this.texture)
         if (this.texture) {
             this.texture.wrapS = THREE.RepeatWrapping;
             this.texture.wrapT = THREE.RepeatWrapping;
-            this.texture.repeat.set(35, 35);
+            this.texture.repeat.set(350, 350);
         }
 
 
@@ -236,10 +241,14 @@ export class Cloth {
         });
 
 
+        const shaderMaterial = getWeaveMaterial(this.material, gridSize.value, tileCount.value);
+
+
         // =====================================================
         // ✅ Mesh
         // =====================================================
-        this.triMesh = new THREE.Mesh(geometry, this.material);
+        
+        this.triMesh = new THREE.Mesh(geometry, shaderMaterial);
         this.triMesh.castShadow = true;
         this.triMesh.userData = this;
         this.triMesh.layers.enable(1);
