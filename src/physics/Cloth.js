@@ -202,20 +202,38 @@ export class Cloth {
 
 
         // =====================================================
-        // ✅ Génération automatique des UVs (OBLIGATOIRE texture)
+        // ✅ Génération automatique des UVs (CORRIGÉE)
         // =====================================================
         const vertexCount = this.pos.length / 3;
         const uvs = new Float32Array(vertexCount * 2);
 
-        // échelle UV → contrôle le zoom de base
-        const scale = 0.1;   // ↓ plus petit = plus zoomé / ↑ plus grand = plus répété
+        // --- calcul bounds du tissu ---
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
 
         for (let i = 0; i < vertexCount; i++) {
             const x = this.pos[i * 3];
             const y = this.pos[i * 3 + 1];
 
-            uvs[i * 2]     = x * scale;
-            uvs[i * 2 + 1] = y * scale;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+
+        const sizeX = maxX - minX;
+        const sizeY = maxY - minY;
+
+        // --- contrôle du nombre de répétitions ---
+        const scale = 2; // ← augmente pour + de répétitions
+
+        for (let i = 0; i < vertexCount; i++) {
+            const x = this.pos[i * 3];
+            const y = this.pos[i * 3 + 1];
+
+            // UV locaux normalisés (0→1) puis répétés
+            uvs[i * 2]     = ((x - minX) / sizeX) * scale;
+            uvs[i * 2 + 1] = ((y - minY) / sizeY) * scale;
         }
 
         geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));

@@ -102,7 +102,7 @@ function setupScene() {
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
 
   const light = new THREE.DirectionalLight(0xffffff);
-  light.position.set(1, 1, 1);
+  light.position.set(0, 3, 3);
   scene.add(light);
 
   init_curves();
